@@ -1,0 +1,20 @@
+{
+    "intersystems.servers": {
+        "iris-notice": {
+            "webServer": {
+                "scheme": "http",
+                "host": "localhost",
+                "port": 52773
+            },
+            "username": "superuser"
+        }
+    },
+    "objectscript.conn": {
+        "server": "iris-notice",
+        "ns": "NOTICE",
+        "active": true
+    },
+    "files.associations": {
+        "iris.script": "objectscript"
+    }
+}

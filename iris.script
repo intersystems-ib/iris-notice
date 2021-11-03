@@ -1,0 +1,34 @@
+    // Unexpire passwords for dev mode
+    zn "%SYS"
+    Do ##class(Security.Users).UnExpireUserPasswords("*")
+
+    // Use this script for testing installing procedures 
+
+    // ---------------------
+    // ZPM install (NOTICE)
+    // ---------------------
+
+    // install latest zpm version
+    //zn "%SYS"
+    //do $SYSTEM.OBJ.Load("/tmp/zpm.xml", "ck")
+
+    // create test environment
+    zn "USER"
+    do $SYSTEM.OBJ.Load("/opt/notice/app/src/IBSP/Notice/Installer.cls", "ck")
+    set vars("CreateEnvironment")="yes"
+    set vars("Namespace")="NOTICE"
+    set vars("CreateWebApp")="yes"
+    set vars("WebApp")="/notice/api"
+    set vars("BasePath")="/opt/notice/app"
+    set vars("DataDBPath")="/opt/notice/db/data"
+    set vars("CodeDBPath")="/opt/notice/db/code"
+    set vars("CreateLanguages")="yes"
+    set sc = ##class(IBSP.Notice.Installer).RunWithParams(.vars)
+    
+    zn "NOTICE"
+    // install RestForms2
+    zpm "install restforms2"
+    // install module & run tests
+    zpm "load -verbose /opt/notice/app/"
+
+    halt
