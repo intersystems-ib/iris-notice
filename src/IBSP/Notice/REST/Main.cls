@@ -1,3 +1,5 @@
+Include notice
+
 Class IBSP.Notice.REST.Main Extends %CSP.REST
 {
 
@@ -14,9 +16,9 @@ Parameter HandleCorsRequest = 1;
 XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 {
 <Routes>
-<Route Url="/test/:param" Method="GET" Call="testGet"/>
-<Route Url="/test" Method="POST" Call="testPost"/>
 <Route Url="/subscriber" Method="POST" Call="createSubscriber"/>
+<Route Url="/subscriber" Method="PUT" Call="updateSubscriber"/>
+<Route Url="/subscriber" Method="GET" Call="getSubscriber"/>
 </Routes>
 }
 
@@ -26,7 +28,10 @@ ClassMethod createSubscriber() As %Status
 
     try {
 
-        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).createSubscriber(%request.Content)
+        set request = ##class(IBSP.Notice.REST.Request.CreateSubscriberRequest).%New()
+        $$$ThrowOnError(request.%JSONImport(%request.Content))
+
+        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).createSubscriber(request)
         do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
     } catch ex {
         set sc = ex.AsStatus()
@@ -35,40 +40,68 @@ ClassMethod createSubscriber() As %Status
     quit sc
 }
 
-ClassMethod testGet(param As %String) As %Status
+ClassMethod updateSubscriber() As %Status
 {
     set sc = $$$OK
 
-	try {
+    try {
 
-        set response = {}
-        set response.message = "Get called with param value " _ param
+        set request = ##class(IBSP.Notice.REST.Request.UpdateSubscriberRequest).%New()
+        $$$ThrowOnError(request.%JSONImport(%request.Content))
 
-        do response.%ToJSON()
-	} catch ex {
-		set sc = ex.AsStatus()
-	}
+        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).updateSubscriber(request)
+        do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
 
-	quit sc
+    quit sc
 }
 
-ClassMethod testPost() As %Status
+ClassMethod getSubscriber() As %Status
 {
     set sc = $$$OK
 
-	try {
+    try {
 
-		set request = ##class(%DynamicObject).%FromJSON(%request.Content)
+        set cip = %request.Get($$$CIP)
+        if '..isValidCIP(cip) {
+            do ..returnHttpBadRequest()
+            quit
+        }
 
-        set response = {}
-        set response.message = "Post called with param value " _ request.param
+        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).getSubscriber(cip)
+        do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
 
-        do response.%ToJSON()
-	} catch ex {
-		set sc = ex.AsStatus()
-	}
+    quit sc
+}
 
-	quit sc
+ClassMethod isValidCIP(cip As %String) As %Boolean [ Private ]
+{
+    /*quit:(cip = "") $$$NO
+    quit $match(cip, $$$ValidCIPRegularExpression)*/
+    quit cip '= ""
+}
+
+ClassMethod returnHttpBadRequest() As %Status
+{
+
+    set error = ##class(IBSP.Notice.REST.Response.ExecutionResponse).%New()
+    set error.result = $$$ERRORSTATUS
+    //set errorMessage = "CIP parameter is required and must have the folling format: 4 letters, followed by a '0' or a '1' and 9 more digits"
+    set errorMessage = "CIP parameter is required"
+    set response = ##class(IBSP.Notice.REST.Response.ErrorResponse).%New(errorMessage)
+    set error.response = response
+
+    set %response.Status = ..#HTTP400BADREQUEST
+
+    do error.%JSONExportToString(.errorString)
+
+    write errorString
+    quit $$$OK
 }
 
 }

@@ -1,5 +1,7 @@
-Class IBSP.Notice.REST.Request.CreateSubscriberRequest Extends (%Persistent, %XML.Adaptor, %JSON.Adaptor)
+Class IBSP.Notice.REST.Response.SubscriberResponse Extends IBSP.Notice.REST.Response.AbstractResponse
 {
+
+Property id As %BigInt;
 
 Property name As %String(MAXLEN = "");
 
@@ -15,9 +17,9 @@ Property topics As list Of %String(MAXLEN = "");
 
 Storage Default
 {
-<Data name="CreateSubscriberRequestDefaultData">
+<Data name="SubscriberResponseState">
 <Value name="1">
-<Value>%%CLASSNAME</Value>
+<Value>id</Value>
 </Value>
 <Value name="2">
 <Value>name</Value>
@@ -38,12 +40,9 @@ Storage Default
 <Value>topics</Value>
 </Value>
 </Data>
-<DataLocation>^IBSP.Notic16AF.CreateSubscE055D</DataLocation>
-<DefaultData>CreateSubscriberRequestDefaultData</DefaultData>
-<IdLocation>^IBSP.Notic16AF.CreateSubscE055D</IdLocation>
-<IndexLocation>^IBSP.Notic16AF.CreateSubscE055I</IndexLocation>
-<StreamLocation>^IBSP.Notic16AF.CreateSubscE055S</StreamLocation>
-<Type>%Storage.Persistent</Type>
+<State>SubscriberResponseState</State>
+<StreamLocation>^IBSP.Notic5BCA.SubscriberR72F2S</StreamLocation>
+<Type>%Storage.Serial</Type>
 }
 
 }

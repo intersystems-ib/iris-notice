@@ -16,7 +16,7 @@ Property Description As %String;
 Index UIISO On ISO [ Unique ];
 
 /// Returns the default language
-ClassMethod GetDefault() As IBSP.Notice.DAT.Lang
+ClassMethod getDefault() As IBSP.Notice.DAT.Lang
 {
     #define DefaultLanguageParamID "DefaultLang"
 

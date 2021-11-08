@@ -1,6 +1,7 @@
 Class IBSP.Notice.InitMasterTables
 {
 
+/// do ##class(IBSP.Notice.InitMasterTables).Init()
 ClassMethod Init() As %Status
 {
     set ret = $$$OK
@@ -17,7 +18,7 @@ ClassMethod Init() As %Status
 }
 
 /// Create default languages
-ClassMethod CreateLangauges() As %Status
+ClassMethod CreateLangauges() As %Status [ Internal, Private ]
 {
 	set ret = $$$OK
 
@@ -47,7 +48,7 @@ ClassMethod CreateLangauges() As %Status
 }
 
 /// Create default languages
-ClassMethod CreateParameters() As %Status
+ClassMethod CreateParameters() As %Status [ Internal, Private ]
 {
 	set ret = $$$OK
 

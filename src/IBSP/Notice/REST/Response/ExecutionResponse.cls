@@ -3,9 +3,7 @@ Class IBSP.Notice.REST.Response.ExecutionResponse Extends (%Persistent, %XML.Ada
 
 Property result As %Integer;
 
-Property errorMessage As %String(MAXLEN = "");
-
-Property id As %String(MAXLEN = "");
+Property response As IBSP.Notice.REST.Response.AbstractResponse;
 
 Storage Default
 {
@@ -17,10 +15,7 @@ Storage Default
 <Value>result</Value>
 </Value>
 <Value name="3">
-<Value>errorMessage</Value>
-</Value>
-<Value name="4">
-<Value>id</Value>
+<Value>response</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notic5BCA.ExecutionReE2A0D</DataLocation>
