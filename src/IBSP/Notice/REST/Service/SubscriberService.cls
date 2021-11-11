@@ -97,6 +97,8 @@ ClassMethod deleteSubscriber(cip As %String) As %DynamicObject
         $$$ThrowOnError(..deleteSubscriberSubscriptions(subscriber))
         $$$ThrowOnError(..deleteSubscriberObj(subscriber))
         set executionResponse.result = $$$OK
+        set response = ##class(IBSP.Notice.REST.Response.SaveSubscriberResponse).%New(-1)
+        set executionResponse.response = response
 
         TCOMMIT
     } catch ex {
