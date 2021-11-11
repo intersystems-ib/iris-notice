@@ -19,6 +19,7 @@ XData UrlMap [ XMLNamespace = "http://www.intersystems.com/urlmap" ]
 <Route Url="/subscriber" Method="POST" Call="createSubscriber"/>
 <Route Url="/subscriber" Method="PUT" Call="updateSubscriber"/>
 <Route Url="/subscriber" Method="GET" Call="getSubscriber"/>
+<Route Url="/subscriber" Method="DELETE" Call="deleteSubscriber"/>
 </Routes>
 }
 
@@ -71,6 +72,27 @@ ClassMethod getSubscriber() As %Status
         }
 
         set response = ##class(IBSP.Notice.REST.Service.SubscriberService).getSubscriber(cip)
+        do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
+ClassMethod deleteSubscriber() As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        set cip = %request.Get($$$CIP)
+        if '..isValidCIP(cip) {
+            do ..returnHttpBadRequest()
+            quit
+        }
+
+        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).deleteSubscriber(cip)
         do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
     } catch ex {
         set sc = ex.AsStatus()

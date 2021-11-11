@@ -69,7 +69,8 @@ ClassMethod Run(pBasePath As %String) As %Status
 		set vars("BasePath") = ##class(%File).NormalizeDirectory(pBasePath)
 		set vars("Namespace") = $namespace
   		set vars("CreateEnvironment") = "no"
-		set vars("CreateWebApp") = "yes"
+		// If you want to create the namespace, change the following var to "yes"
+		set vars("CreateWebApp") = "no"
 		set vars("WebApp") = "/notice/api"
 		set vars("RunNoZPMInstall") = "yes"
 		set vars("CreateLanguages") = "yes"

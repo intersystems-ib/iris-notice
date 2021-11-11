@@ -83,6 +83,32 @@ ClassMethod getSubscriber(cip As %String) As %DynamicObject
     quit {}.%FromJSON(responseString)
 }
 
+ClassMethod deleteSubscriber(cip As %String) As %DynamicObject
+{
+    set executionResponse = ##class(IBSP.Notice.REST.Response.ExecutionResponse).%New()
+
+    try {
+
+        TSTART
+
+        $$$ThrowOnError(..getSubscriberByCip(cip, .subscriber))
+        $$$ThrowOnError(..deleteSubscriberApplicationId(subscriber))
+        $$$ThrowOnError(..deleteSubscriberCip(subscriber))
+        $$$ThrowOnError(..deleteSubscriberSubscriptions(subscriber))
+        $$$ThrowOnError(..deleteSubscriberObj(subscriber))
+        set executionResponse.result = $$$OK
+
+        TCOMMIT
+    } catch ex {
+        TROLLBACK
+        do ..buildErrorResponse(ex.DisplayString(), .executionResponse)
+    }
+
+    do executionResponse.%JSONExportToString(.responseString)
+
+    quit {}.%FromJSON(responseString)
+}
+
 ClassMethod validateIfUserAlreadyExists(cip As %String) As %Status [ Internal, Private ]
 {
     quit:(cip = "") $$$OK
@@ -134,8 +160,6 @@ ClassMethod createCipFromRequest(subscriber As IBSP.Notice.DAT.Subscriber, reque
 ClassMethod createSubscriptionsFromRequest(subscriber As IBSP.Notice.DAT.Subscriber, request As IBSP.Notice.REST.Request.CreateSubscriberRequest) As %Status [ Internal, Private ]
 {
     set topics = request.topics
-    quit:(topics = "") $$$OK
-    quit:(topics.Count() = 0) $$$OK
 
     if (topics = "") || (topics.Count() = 0) {
         set topics = ##class(%ListOfDataTypes).%New()
@@ -294,7 +318,7 @@ ClassMethod getSubscriberResponseByCip(cip As %String, Output response As IBSP.N
             set:($isobject(subscriber.Lang)) response.language = subscriber.Lang.ISO
             set response.cip = cip
 
-            $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).getContactWayAddressBySubscriberIdAndType(subscriberId, $$$ApplicationId, .applicationId))
+            $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).getAddressBySubscriberIdAndType(subscriberId, $$$ApplicationId, .applicationId))
             set response.applicationId = applicationId
 
             $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriptionService).getTopicsBySubscriberId(subscriberId, .topics))
@@ -305,6 +329,26 @@ ClassMethod getSubscriberResponseByCip(cip As %String, Output response As IBSP.N
     }
 
     quit sc
+}
+
+ClassMethod deleteSubscriberApplicationId(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    quit ##class(IBSP.Notice.Service.ContactWayService).delete(subscriber, $$$ApplicationId)
+}
+
+ClassMethod deleteSubscriberCip(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    quit ##class(IBSP.Notice.Service.UserIdService).delete(subscriber, $$$CIP)
+}
+
+ClassMethod deleteSubscriberSubscriptions(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    quit ##class(IBSP.Notice.Service.SubscriptionService).deleteAll(subscriber)
+}
+
+ClassMethod deleteSubscriberObj(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    quit ##class(IBSP.Notice.DAT.Subscriber).%DeleteId(subscriber.%Id())
 }
 
 ClassMethod buildErrorResponse(errorMessage As %String, Output executionResponse As IBSP.Notice.REST.Response.ExecutionResponse) As %Status [ Internal, Private ]

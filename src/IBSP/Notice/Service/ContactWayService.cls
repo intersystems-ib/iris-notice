@@ -49,7 +49,33 @@ ClassMethod update(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, ad
     quit sc
 }
 
-ClassMethod getContactWayAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output address As %String(MAXLEN="")) As %Status
+ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        if type '= "" {
+
+            set subscriberId = subscriber.%Id()
+
+            &sql(
+                DELETE
+                  FROM IBSP_Notice_DAT.ContactWay
+                 WHERE Subscriber = :subscriberId
+                   AND Type = :type
+            )
+
+            set:(SQLCODE '= 0) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
+        }
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
+ClassMethod getAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output address As %String(MAXLEN="")) As %Status
 {
     set tSC = $$$OK
 

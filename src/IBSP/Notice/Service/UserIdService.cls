@@ -46,4 +46,30 @@ ClassMethod create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, co
     quit sc
 }
 
+ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        if type '= "" {
+
+            set subscriberId = subscriber.%Id()
+
+            &sql(
+                DELETE
+                  FROM IBSP_Notice_DAT.UserID
+                 WHERE Subscriber = :subscriberId
+                   AND Type = :type
+            )
+
+            set:(SQLCODE '= 0) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
+        }
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
 }

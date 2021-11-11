@@ -48,6 +48,28 @@ ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, topic As %String) A
     quit sc
 }
 
+ClassMethod deleteAll(subscriber As IBSP.Notice.DAT.Subscriber) As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        set subscriberId = subscriber.%Id()
+
+        &sql(
+            DELETE
+                FROM IBSP_Notice_DAT.Subscription
+                WHERE Subscriber = :subscriberId
+        )
+
+        set:((SQLCODE '= 0) && (SQLCODE '= 100)) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.SubscriptionService.deleteAll] SQLCODE error " _ SQLCODE _ " " _ %msg)
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
 ClassMethod getSubscriptionBySubscriberIdAndTopic(subscriberId As %BigInt, topic As %String, Output subscription As IBSP.Notice.DAT.Subscription) As %Status
 {
     set sc = $$$OK
