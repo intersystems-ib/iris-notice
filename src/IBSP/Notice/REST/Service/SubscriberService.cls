@@ -65,13 +65,18 @@ ClassMethod updateSubscriber(request As IBSP.Notice.REST.Request.UpdateSubscribe
     quit {}.%FromJSON(responseString)
 }
 
-ClassMethod getSubscriber(cip As %String) As %DynamicObject
+ClassMethod getSubscriber(cip As %String, applicationid As %String) As %DynamicObject
 {
     set executionResponse = ##class(IBSP.Notice.REST.Response.ExecutionResponse).%New()
 
     try {
 
-        $$$ThrowOnError(..getSubscriberResponseByCip(cip, .response))
+        if cip '= "" {
+            $$$ThrowOnError(..getSubscriberResponseByCip(cip, .response))
+        } else {
+            $$$ThrowOnError(..getSubscriberResponseByApplicationId(applicationid, .response))
+        }
+        
         set executionResponse.result = $$$OK
         set executionResponse.response = response
     } catch ex {
@@ -322,6 +327,40 @@ ClassMethod getSubscriberResponseByCip(cip As %String, Output response As IBSP.N
 
             $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).getAddressBySubscriberIdAndType(subscriberId, $$$ApplicationId, .applicationId))
             set response.applicationId = applicationId
+
+            $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriptionService).getTopicsBySubscriberId(subscriberId, .topics))
+            set response.topics = topics
+        }
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
+ClassMethod getSubscriberResponseByApplicationId(applicationid As %String, Output response As IBSP.Notice.REST.Response.SubscriberResponse) As %Status [ Internal, Private ]
+{
+    set sc = $$$OK
+
+    try {
+
+        set response = ##class(IBSP.Notice.REST.Response.SubscriberResponse).%New()
+
+        $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).getByContactWay($$$ApplicationId, applicationid, .subscriber))
+
+        if $isobject(subscriber) {
+
+            set subscriberId = subscriber.%Id()
+
+            set response.id = subscriberId
+            set response.name = subscriber.Name
+            set response.surname = subscriber.SurName
+            set:($isobject(subscriber.Lang)) response.language = subscriber.Lang.ISO
+
+            $$$ThrowOnError(##class(IBSP.Notice.Service.UserIdService).getCodeBySubscriberIdAndType(subscriberId, $$$CIP, .cip))
+            set response.cip = cip
+
+            set response.applicationId = applicationid
 
             $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriptionService).getTopicsBySubscriberId(subscriberId, .topics))
             set response.topics = topics

@@ -1,6 +1,29 @@
 Class IBSP.Notice.Service.ContactWayService
 {
 
+ClassMethod getByTypeAndAddress(type As %String, address As %String, Output contactWay As IBSP.Notice.DAT.ContactWay) As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        set contactWay = ""
+
+        &sql(
+            SELECT ID INTO :id
+              FROM IBSP_Notice_DAT.ContactWay
+             WHERE Type = :type
+               AND Address = :address
+        )
+
+        set:(id > 0) contactWay = ##class(IBSP.Notice.DAT.ContactWay).%OpenId(id) 
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
 ClassMethod create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, address As %String) As %Status
 {
     set sc = $$$OK

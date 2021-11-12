@@ -72,4 +72,22 @@ ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As
     quit sc
 }
 
+ClassMethod getCodeBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output code As %String(MAXLEN="")) As %Status
+{
+    set tSC = $$$OK
+
+    try {
+        &sql(
+            SELECT Code INTO :code
+			  FROM IBSP_Notice_DAT.UserId
+			 WHERE Subscriber = :subscriberId
+               AND Type = :type
+        )
+    } catch ex {
+        set tSC = ex.AsStatus()
+    }
+
+    quit tSC
+}
+
 }

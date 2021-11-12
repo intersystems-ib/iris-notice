@@ -17,6 +17,22 @@ ClassMethod getByUserId(userIdType As %String, userIdCode As %String, Output sub
     quit sc
 }
 
+ClassMethod getByContactWay(contactWayType As %String, contactWayAddress As %String, Output subscriber As IBSP.Notice.DAT.Subscriber) As %Status
+{
+    set sc = $$$OK
+
+    try {
+
+        set subscriber = ""
+        $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).getByTypeAndAddress(contactWayType, contactWayAddress, .contactWay))
+        set:($isobject(contactWay)) subscriber = contactWay.Subscriber
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    quit sc
+}
+
 ClassMethod existsByUserId(userIdType As %String, userIdCode As %String) As %Boolean
 {
     try {

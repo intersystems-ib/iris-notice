@@ -66,12 +66,14 @@ ClassMethod getSubscriber() As %Status
     try {
 
         set cip = %request.Get($$$CIP)
-        if '..isValidCIP(cip) {
+        set applicationid = %request.Get($$$ApplicationId)
+        //if '..isValidCIP(cip) {
+        if (cip = "") && (applicationid = "") {
             do ..returnHttpBadRequest()
             quit
         }
 
-        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).getSubscriber(cip)
+        set response = ##class(IBSP.Notice.REST.Service.SubscriberService).getSubscriber(cip, applicationid)
         do ##class(IBSP.Notice.REST.Service.SubscriberService).%WriteResponse(response)
     } catch ex {
         set sc = ex.AsStatus()
@@ -114,7 +116,7 @@ ClassMethod returnHttpBadRequest() As %Status
     set error = ##class(IBSP.Notice.REST.Response.ExecutionResponse).%New()
     set error.result = $$$ERRORSTATUS
     //set errorMessage = "CIP parameter is required and must have the folling format: 4 letters, followed by a '0' or a '1' and 9 more digits"
-    set errorMessage = "CIP parameter is required"
+    set errorMessage = "cip or applicationid parameters are required"
     set response = ##class(IBSP.Notice.REST.Response.ErrorResponse).%New(errorMessage)
     set error.response = response
 
