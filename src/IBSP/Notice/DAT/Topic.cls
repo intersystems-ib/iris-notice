@@ -61,7 +61,7 @@ ClassMethod queryLIST() As %String
          "Destination, " _
          "BotName, " _
          "Template, " _
-         "(select count(*) from Notice_DAT.Notification n where n.Topic = t.%id) Notifications "
+         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Topic = t.%id) Notifications "
 }
 
 ClassMethod queryLISTTOPICKEYS() As %String

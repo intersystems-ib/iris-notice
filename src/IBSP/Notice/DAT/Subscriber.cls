@@ -28,11 +28,11 @@ ClassMethod queryLIST() As %String
     quit "%id _id, " _
          "Name, " _
          "SurName, " _
-         "(select u.Code from Notice_DAT.UserID u where u.Subscriber = t.%id and u.Type = 'employeeid') EmployeeId, " _
-         "(select c.Address from Notice_DAT.ContactWay c where c.Subscriber = t.%id AND c.Type = 'email') Email, " _
-         "(select count(*) from Notice_DAT.Subscription s where s.Subscriber = t.%id) NumSubscriptions, " _
-         "(select count(*) from Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PULL') PullNotifications, " _
-         "(select count(*) from Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PUSH') PushNotifications "
+         "(select u.Code from IBSP_Notice_DAT.UserID u where u.Subscriber = t.%id and u.Type = 'employeeid') EmployeeId, " _
+         "(select c.Address from IBSP_Notice_DAT.ContactWay c where c.Subscriber = t.%id AND c.Type = 'email') Email, " _
+         "(select count(*) from IBSP_Notice_DAT.Subscription s where s.Subscriber = t.%id) NumSubscriptions, " _
+         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PULL') PullNotifications, " _
+         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PUSH') PushNotifications "
 }
 
 Storage Default
