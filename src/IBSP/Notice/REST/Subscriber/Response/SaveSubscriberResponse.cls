@@ -1,4 +1,4 @@
-Class IBSP.Notice.REST.Response.SaveSubscriberResponse Extends IBSP.Notice.REST.Response.AbstractResponse
+Class IBSP.Notice.REST.Subscriber.Response.SaveSubscriberResponse Extends IBSP.Notice.REST.Subscriber.Response.AbstractResponse
 {
 
 Property id As %BigInt;
@@ -6,7 +6,7 @@ Property id As %BigInt;
 Method %OnNew(id As %BigInt) As %Status [ Private ]
 {
     set ..id = id
-    quit $$$OK
+    return $$$OK
 }
 
 Storage Default
@@ -17,7 +17,7 @@ Storage Default
 </Value>
 </Data>
 <State>SaveSubscriberResponseState</State>
-<StreamLocation>^IBSP.Notic5BCA.SaveSubscriB03CS</StreamLocation>
+<StreamLocation>^IBSP.Notic1EB3.SaveSubscriB03CS</StreamLocation>
 <Type>%Storage.Serial</Type>
 }
 

@@ -1,93 +1,81 @@
 Class IBSP.Notice.Service.UserIdService
 {
 
-ClassMethod getByTypeAndCode(type As %String, code As %String, Output userId As IBSP.Notice.DAT.UserID) As %Status
+Parameter UserIdManagerIdType = "managerid";
+
+Parameter UserIdEmployeeIdType = "employeeid";
+
+ClassMethod GetByTypeAndCode(type As %String, code As %String, Output userId As IBSP.Notice.DAT.UserID) As %Status
 {
     set sc = $$$OK
+    set userId = ""
 
-    try {
+    &sql(
+        SELECT ID INTO :id
+            FROM IBSP_Notice_DAT.UserID
+            WHERE Type = :type
+            AND Code = :code
+    )
 
-        set userId = ""
+    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetByTypeAndCode] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
-        &sql(
-            SELECT ID INTO :id
-              FROM IBSP_Notice_DAT.UserID
-             WHERE Type = :type
-               AND Code = :code
-        )
-
-        set:(id > 0) userId = ##class(IBSP.Notice.DAT.UserID).%OpenId(id) 
-    } catch ex {
-        set sc = ex.AsStatus()
-    }
+    set:(id > 0) userId = ##class(IBSP.Notice.DAT.UserID).%OpenId(id, .sc) 
 
     quit sc
 }
 
-ClassMethod create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, code As %String) As %Status
+ClassMethod Create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, code As %String) As %Status
 {
-    set sc = $$$OK
+    return:(code = "") $$$OK
 
-    try {
+    set userID = ##class(IBSP.Notice.DAT.UserID).%New()
+    set userID.Subscriber = subscriber
+    set userID.Type = type
+    set userID.Code = code
 
-        if code '= "" {
-
-            set userID = ##class(IBSP.Notice.DAT.UserID).%New()
-            set userID.Subscriber = subscriber
-            set userID.Type = type
-            set userID.Code = code
-
-            $$$ThrowOnError(userID.%Save(0))
-        }
-    } catch ex {
-        set sc = ex.AsStatus
-    }
-
-    quit sc
+    return userID.%Save(0)
 }
 
-ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
+ClassMethod Delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
 {
-    set sc = $$$OK
+    return:(type = "") $$$OK
 
-    try {
+    set subscriberId = subscriber.%Id()
 
-        if type '= "" {
+    &sql(
+        DELETE
+            FROM IBSP_Notice_DAT.UserID
+            WHERE Subscriber = :subscriberId
+            AND Type = :type
+    )
 
-            set subscriberId = subscriber.%Id()
+    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.Delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
-            &sql(
-                DELETE
-                  FROM IBSP_Notice_DAT.UserID
-                 WHERE Subscriber = :subscriberId
-                   AND Type = :type
-            )
-
-            set:(SQLCODE '= 0) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
-        }
-    } catch ex {
-        set sc = ex.AsStatus()
-    }
-
-    quit sc
+    return $$$OK
 }
 
-ClassMethod getCodeBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output code As %String(MAXLEN="")) As %Status
+ClassMethod GetCodeBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output code As %String(MAXLEN="")) As %Status
 {
-    set tSC = $$$OK
+    &sql(
+        SELECT Code INTO :code
+            FROM IBSP_Notice_DAT.UserId
+            WHERE Subscriber = :subscriberId
+            AND Type = :type
+    )
 
-    try {
-        &sql(
-            SELECT Code INTO :code
-			  FROM IBSP_Notice_DAT.UserId
-			 WHERE Subscriber = :subscriberId
-               AND Type = :type
-        )
-    } catch ex {
-        set tSC = ex.AsStatus()
-    }
+    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetCodeBySubscriberIdAndType] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
-    quit tSC
+    return $$$OK
+}
+
+ClassMethod GetEmployeeIdBySubscriberId(subscriberId As %BigInt, Output employeeId As %String) As %Status
+{
+    return ..GetCodeBySubscriberIdAndType(subscriberId, ..#UserIdEmployeeIdType, .employeeId)
+}
+
+ClassMethod GetManagerIdBySubscriber(subscriber As IBSP.Notice.DAT.Subscriber, Output managerId As %String) As %Status
+{
+    return ..GetCodeBySubscriberIdAndType(subscriber.%Id(), ..#UserIdManagerIdType, .managerId)
 }
 
 }

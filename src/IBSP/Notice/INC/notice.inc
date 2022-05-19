@@ -19,3 +19,13 @@ ROUTINE notice [Type=INC]
 #define getLastTwoChars(%s) $extract(%s, *-1, *)
 #define ValidCIPRegularExpression "\D{4}[0-1]\d{9}"
 #define toUpperCase(%s) $zconvert(%s, "U")
+
+#; JSON Utils
+#define IsObjectOrArray(%t) (%t = "object") || (%t = "array")
+
+#; HTTP Utils
+#define IsPost(%m) (%m = "POST")
+#define IsGet(%m) (%m = "GET")
+
+#; Status Utils
+#define ReturnOnError(%expr) set sc=%expr return:$$$ISERR(sc) sc

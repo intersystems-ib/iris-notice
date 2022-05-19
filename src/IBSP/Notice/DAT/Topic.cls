@@ -40,15 +40,30 @@ Property Subject As %String(MAXLEN = "");
 /// Subject MsgID for multi language
 Property SubjectMsg As %String;
 
+Property OutboundAdapter As %String;
+
+Property BodyFormat As %String;
+
+Property BodyTemplate As %String(MAXLEN = "");
+
+Property ExecutionComponent As %String(MAXLEN = "");
+
 Index UITopicKey On TopicKey [ Unique ];
 
 /// Indicates the HTML Topic format
 Parameter HTMLFORMAT = "HTML";
 
-/// Returns true if the topic format is HTML
+/// Indicates the HTTP Outbound Adapter
+Parameter HTTPOUTBOUNDADAPTER = "HTTP";
+
 Method IsHtmlFormat() As %Boolean
 {
     quit ..#HTMLFORMAT = ..Format
+}
+
+Method IsHttpOutboundAdapter() As %Boolean
+{
+    quit ..#HTTPOUTBOUNDADAPTER = ..OutboundAdapter
 }
 
 /// Necessary for RESTForms2. This query is called when the "list" URL is invoked
@@ -104,6 +119,18 @@ Storage Default
 </Value>
 <Value name="11">
 <Value>SubjectMsg</Value>
+</Value>
+<Value name="12">
+<Value>OutboundAdapter</Value>
+</Value>
+<Value name="13">
+<Value>BodyFormat</Value>
+</Value>
+<Value name="14">
+<Value>BodyTemplate</Value>
+</Value>
+<Value name="15">
+<Value>ExecutionComponent</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.TopicD</DataLocation>

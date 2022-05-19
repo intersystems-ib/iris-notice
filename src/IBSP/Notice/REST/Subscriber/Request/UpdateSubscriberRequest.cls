@@ -1,4 +1,4 @@
-Class IBSP.Notice.REST.Request.UpdateSubscriberRequest Extends (%Persistent, %XML.Adaptor, %JSON.Adaptor)
+Class IBSP.Notice.REST.Subscriber.Request.UpdateSubscriberRequest Extends (%Persistent, %XML.Adaptor, %JSON.Adaptor)
 {
 
 Property name As %String(MAXLEN = "");
@@ -43,11 +43,11 @@ Storage Default
 <Value>topicsToDelete</Value>
 </Value>
 </Data>
-<DataLocation>^IBSP.Notic16AF.UpdateSubsc6E80D</DataLocation>
+<DataLocation>^IBSP.Notic2F5C.UpdateSubsc6E80D</DataLocation>
 <DefaultData>UpdateSubscriberRequestDefaultData</DefaultData>
-<IdLocation>^IBSP.Notic16AF.UpdateSubsc6E80D</IdLocation>
-<IndexLocation>^IBSP.Notic16AF.UpdateSubsc6E80I</IndexLocation>
-<StreamLocation>^IBSP.Notic16AF.UpdateSubsc6E80S</StreamLocation>
+<IdLocation>^IBSP.Notic2F5C.UpdateSubsc6E80D</IdLocation>
+<IndexLocation>^IBSP.Notic2F5C.UpdateSubsc6E80I</IndexLocation>
+<StreamLocation>^IBSP.Notic2F5C.UpdateSubsc6E80S</StreamLocation>
 <Type>%Storage.Persistent</Type>
 }
 

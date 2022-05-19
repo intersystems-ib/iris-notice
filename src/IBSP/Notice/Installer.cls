@@ -64,21 +64,18 @@ ClassMethod RunNoZPMInstallManifest(ByRef pVars, pLogLevel As %Integer = 3, pIns
 /// - pBasePath: base application path (where it has been downloaded) 
 ClassMethod Run(pBasePath As %String) As %Status
 {
-	set ret = $$$OK
-	try {
-		set vars("BasePath") = ##class(%File).NormalizeDirectory(pBasePath)
-		set vars("Namespace") = $namespace
-  		set vars("CreateEnvironment") = "no"
-		// If you want to create the namespace, change the following var to "yes"
-		set vars("CreateWebApp") = "no"
-		set vars("WebApp") = "/notice/api"
-		set vars("RunNoZPMInstall") = "yes"
-		set vars("CreateLanguages") = "yes"
-  		$$$ThrowOnError(..RunWithParams(.vars))
-	} catch ex {
-		set ret = ex.AsStatus()
-	}
-	quit ret
+	set vars("BasePath") = ##class(%File).NormalizeDirectory(pBasePath)
+	set vars("Namespace") = $namespace
+	set vars("CreateEnvironment") = "no"
+	// If you want to create the namespace, change the following var to "yes"
+	set vars("CreateWebApp") = "no"
+	set vars("WebApp") = "/notice/api"
+	set vars("CreateWebAppTelegram") = "no"
+	set vars("WebAppTelegram") = "/api/not/command/v1"
+	set vars("RunNoZPMInstall") = "yes"
+	set vars("CreateLanguages") = "yes"
+
+	return ..RunWithParams(.vars)
 }
 
 /// Installer entry point.
@@ -95,8 +92,8 @@ ClassMethod RunWithParams(ByRef vars) As %Status
         do ..Log("START INSTALLER") 
 
 		// set default values for installer variables
-        for ivar="CreateEnvironment","RunNoZPMInstall","Namespace","CreateWebApp","WebApp","BasePath","DataDBPath","CodeDBPath" {
-            if '$data(vars(ivar)) set vars(ivar)=$parameter($classname(), ivar)
+        for ivar="CreateEnvironment","RunNoZPMInstall","Namespace","CreateWebApp","WebApp","CreateWebAppTelegram","WebAppTelegram","BasePath","DataDBPath","CodeDBPath" {
+            set:('$data(vars(ivar))) vars(ivar) = $parameter($classname(), ivar)
         }
 		
 		// create environment
@@ -113,6 +110,11 @@ ClassMethod RunWithParams(ByRef vars) As %Status
         if vars("CreateWebApp") = "yes" { 
             $$$ThrowOnError(..CreateWebApp(vars("Namespace"), vars("WebApp"), "IBSP.Notice.REST.Main"))
         }
+
+		// create web application for Telegram
+        if vars("CreateWebAppTelegram") = "yes" { 
+            $$$ThrowOnError(..CreateWebApp(vars("Namespace"), vars("WebAppTelegram"), "IBSP.Notice.API.NOT.Command.v1.disp"))
+        }
 		
         do ..Log("INSTALLER SUCCESS")
 
@@ -123,7 +125,7 @@ ClassMethod RunWithParams(ByRef vars) As %Status
     }
 
 	set $namespace = previousNamespace
-    quit ret
+    return ret
 }
 
 /// Log a message
@@ -138,22 +140,14 @@ ClassMethod Log(pText As %String, pTimeStamp As %Boolean = 1, pNewLine As %Boole
 /// Create web application
 ClassMethod CreateWebApp(pNamespace As %String, pWebApp As %String, pDispatch As %String) As %Status
 {
-	set ret = $$$OK
+	zn "%SYS" 
+	set webName = pWebApp 
+	set webProperties("DispatchClass") = pDispatch
+	set webProperties("NameSpace") = pNamespace
+	set webProperties("Enabled") = 1 
+	set webProperties("AutheEnabled") = 32 
 
-	try {
-    
-		zn "%SYS" 
-		set webName = pWebApp 
-		set webProperties("DispatchClass") = pDispatch
-		set webProperties("NameSpace") = pNamespace
-		set webProperties("Enabled") = 1 
-		set webProperties("AutheEnabled") = 32 
-		$$$ThrowOnError(##class(Security.Applications).Create(webName, .webProperties))
-	} catch ex {
-    	set ret = ex.AsStatus()
-	} 
-
-	quit ret
+	return ##class(Security.Applications).Create(webName, .webProperties)
 }
 
 }

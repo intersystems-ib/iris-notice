@@ -1,6 +1,43 @@
 Class IBSP.Notice.Utils
 {
 
+/// Log&Debug method
+/// PARAMS: pType: 1: ERROR / 2: WARN / 3: DEBUG
+/// 			pText: Text to include
+/// ##class(UTIL.Function).Log(3, "TEXT to LOG")
+ClassMethod Log(pType As %String, pText As %String)
+{
+	set level = ..GetParameter("LOG_LEVEL")
+	if (pType <= level) {
+	
+		if (pType = 3) {set Type = "DEBUG"
+		} elseif (pType = 2) {set Type = "WARN"
+		} elseif (pType = 1) {set Type = "ERROR"}
+		set ind=$INCREMENT(^NOTlog(Type))
+		set ^NOTlog(Type,ind)=$zdatetime($horolog,3)_":"_Type_"|"_pText
+	}
+}
+
+/// Returns the value of a given parameter. This parameters can be used across REP and CLP applications.
+ClassMethod GetParameter(paramID As %String) As %String
+{
+	&sql(SELECT ParamValue, ParamType into :newID, :ptype
+		FROM IBSP_Notice_DAT.Params
+		WHERE ParamID=:paramID)	
+	if (SQLCODE=100) {
+		do ##class(IBSP.Notice.Utils).Log(2,"WARNING: Parameter not defined: "_paramID)
+		quit "ERROR"
+	}
+		
+	if (ptype = "SECUENCE") {
+		set nextID = newID + 1 
+		&sql(UPDATE IBSP_Notice_DAT.Params
+		SET ParamValue = :nextID
+		WHERE ParamID=:paramID)
+	} 
+	quit newID
+}
+
 /// Extract all the parameters received for a command
 ClassMethod ExtractParametersFromCommand(command As %String) As %String
 {
@@ -184,8 +221,26 @@ ClassMethod GetTranslatedMessage(messageID As %String, lang As IBSP.Notice.DAT.L
 	quit defaultMessage
 }
 
+ClassMethod GetTopicBody(topic As IBSP.Notice.DAT.Topic, ByRef params, Output text As %String) As %Status
+{
+	set tSC = $$$OK
+
+	try {
+
+		set text = ""
+		return:('$isobject(topic)) tSC
+
+		set bodyTemplate = topic.BodyTemplate
+		set text = ..ReplaceMessageTags(bodyTemplate, $$$YES, .params)
+	} catch ex {
+		set tSC = $$$OK
+	}
+
+	quit tSC
+}
+
 /// Replaces the tags in the message with the inpunt params ARRAY
-ClassMethod ReplaceMessageTags(message As %String, isHtmlFormat As %Boolean = 0, ByRef params) As %String
+ClassMethod ReplaceMessageTags(message As %String, formatText As %Boolean = 0, ByRef params) As %String
 {
 	set text = $replace(message, "##ENTER##", $char(10))
 
@@ -198,11 +253,11 @@ ClassMethod ReplaceMessageTags(message As %String, isHtmlFormat As %Boolean = 0,
 	
 		set key = $order(params(key))
 		quit:(key = "")
-		set text = $replace(text, "##" _ key _ "##", $g(params(key)))
+		set text = $replace(text, "##" _ $zconvert(key, "U") _ "##", $g(params(key)))
 	} while key '= ""
 	
 	set text = ..RemoveNotUsedTags(text)
-	set:('isHtmlFormat) text = ..FormatText(text)
+	set:('formatText) text = ..FormatText(text)
 
 	quit text
 }

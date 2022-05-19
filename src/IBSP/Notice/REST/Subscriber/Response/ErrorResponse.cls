@@ -1,4 +1,4 @@
-Class IBSP.Notice.REST.Response.ErrorResponse Extends IBSP.Notice.REST.Response.AbstractResponse
+Class IBSP.Notice.REST.Subscriber.Response.ErrorResponse Extends IBSP.Notice.REST.Subscriber.Response.AbstractResponse
 {
 
 Property errorMessage As %String(MAXLEN = "");
@@ -6,7 +6,7 @@ Property errorMessage As %String(MAXLEN = "");
 Method %OnNew(errorMessage As %String) As %Status [ Private ]
 {
     set ..errorMessage = errorMessage
-    quit $$$OK
+    return $$$OK
 }
 
 Storage Default
@@ -17,7 +17,7 @@ Storage Default
 </Value>
 </Data>
 <State>ErrorResponseState</State>
-<StreamLocation>^IBSP.Notice5BCA.ErrorResponseS</StreamLocation>
+<StreamLocation>^IBSP.Notice1EB3.ErrorResponseS</StreamLocation>
 <Type>%Storage.Serial</Type>
 }
 

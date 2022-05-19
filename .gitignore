@@ -7,3 +7,4 @@ samples/log/*.xml
 samples/error/*.xml
 samples/unittest/*
 tmp/*
+*.DS_Store

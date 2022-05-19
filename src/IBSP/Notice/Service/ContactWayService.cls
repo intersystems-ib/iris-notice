@@ -1,7 +1,11 @@
 Class IBSP.Notice.Service.ContactWayService
 {
 
-ClassMethod getByTypeAndAddress(type As %String, address As %String, Output contactWay As IBSP.Notice.DAT.ContactWay) As %Status
+Parameter ContactWayTelegramType = "telegram";
+
+Parameter ContactWayEmailType = "email";
+
+ClassMethod GetByTypeAndAddress(type As %String, address As %String, Output contactWay As IBSP.Notice.DAT.ContactWay) As %Status
 {
     set sc = $$$OK
 
@@ -21,86 +25,60 @@ ClassMethod getByTypeAndAddress(type As %String, address As %String, Output cont
         set sc = ex.AsStatus()
     }
 
-    quit sc
+    return sc
 }
 
-ClassMethod create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, address As %String) As %Status
+ClassMethod Create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, address As %String) As %Status
+{
+    return:(address = "") $$$OK
+
+    set userID = ##class(IBSP.Notice.DAT.ContactWay).%New()
+    set userID.Subscriber = subscriber
+    set userID.Type = type
+    set userID.Address = address
+
+    return userID.%Save(0)
+}
+
+ClassMethod Update(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, address As %String) As %Status
+{
+    return:(address = "") $$$OK
+
+    set subscriberId = subscriber.%Id()
+
+    &sql(
+        UPDATE IBSP_Notice_DAT.ContactWay
+            SET Address = :address
+            WHERE Subscriber = :subscriberId
+            AND Type = :type
+    )
+
+    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.Update] SQLCODE error " _ SQLCODE _ " " _ %msg)
+
+    return $$$OK
+}
+
+ClassMethod Delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
+{
+    return:(type = "") $$$OK
+
+    set subscriberId = subscriber.%Id()
+
+    &sql(
+        DELETE
+            FROM IBSP_Notice_DAT.ContactWay
+            WHERE Subscriber = :subscriberId
+            AND Type = :type
+    )
+
+    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.Delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
+
+    return $$$OK
+}
+
+ClassMethod GetAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output address As %String(MAXLEN="")) As %Status
 {
     set sc = $$$OK
-
-    try {
-
-        if address '= "" {
-
-            set userID = ##class(IBSP.Notice.DAT.ContactWay).%New()
-            set userID.Subscriber = subscriber
-            set userID.Type = type
-            set userID.Address = address
-
-            $$$ThrowOnError(userID.%Save(0))
-        }
-    } catch ex {
-        set sc = ex.AsStatus()
-    }
-
-    quit sc
-}
-
-ClassMethod update(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, address As %String) As %Status
-{
-    set sc = $$$OK
-
-    try {
-
-        if address '= "" {
-
-            set subscriberId = subscriber.%Id()
-
-            &sql(
-                UPDATE IBSP_Notice_DAT.ContactWay
-                   SET Address = :address
-                 WHERE Subscriber = :subscriberId
-                   AND Type = :type
-            )
-
-            set:(SQLCODE '= 0) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.update] SQLCODE error " _ SQLCODE _ " " _ %msg)
-        }
-    } catch ex {
-        set sc = ex.AsStatus()
-    }
-
-    quit sc
-}
-
-ClassMethod delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
-{
-    set sc = $$$OK
-
-    try {
-
-        if type '= "" {
-
-            set subscriberId = subscriber.%Id()
-
-            &sql(
-                DELETE
-                  FROM IBSP_Notice_DAT.ContactWay
-                 WHERE Subscriber = :subscriberId
-                   AND Type = :type
-            )
-
-            set:(SQLCODE '= 0) sc = $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
-        }
-    } catch ex {
-        set sc = ex.AsStatus()
-    }
-
-    quit sc
-}
-
-ClassMethod getAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output address As %String(MAXLEN="")) As %Status
-{
-    set tSC = $$$OK
 
     try {
         &sql(
@@ -110,10 +88,20 @@ ClassMethod getAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %St
                AND Type = :type
         )
     } catch ex {
-        set tSC = ex.AsStatus()
+        set sc = ex.AsStatus()
     }
 
-    quit tSC
+    return sc
+}
+
+ClassMethod GetTelegramAddressBySubscriber(subscriber As IBSP.Notice.DAT.Subscriber, Output telegramAddress As %String(MAXLEN="")) As %Status
+{
+    return ..GetAddressBySubscriberIdAndType(subscriber.%Id(), ..#ContactWayTelegramType, .telegramAddress)
+}
+
+ClassMethod GetEmailAddressBySubscriber(subscriber As IBSP.Notice.DAT.Subscriber, Output emailAddress As %String(MAXLEN="")) As %Status
+{
+    return ..GetAddressBySubscriberIdAndType(subscriber.%Id(), ..#ContactWayEmailType, .emailAddress)
 }
 
 }

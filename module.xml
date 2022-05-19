@@ -15,7 +15,7 @@
       <Packaging>module</Packaging>
       <SourcesRoot>src</SourcesRoot>
       <SystemRequirements Version=">=2020.1" Interoperability="enabled" />
-      <Resource Name="IBSP.Notice.PKG"/>
+      <Resource Name="IBSP.PKG"/>
     </Module>
   </Document>
 </Export>

@@ -19,6 +19,8 @@
     set vars("Namespace")="NOTICE"
     set vars("CreateWebApp")="yes"
     set vars("WebApp")="/notice/api"
+    set vars("CreateWebAppTelegram") = "yes"
+    set vars("WebAppTelegram") = "/api/not/command/v1"
     set vars("BasePath")="/opt/notice/app"
     set vars("DataDBPath")="/opt/notice/db/data"
     set vars("CodeDBPath")="/opt/notice/db/code"
@@ -28,7 +30,22 @@
     zn "NOTICE"
     // install RestForms2
     zpm "install restforms2"
+    // install WebTerminal
+    zpm "install webterminal"
     // install module & run tests
     zpm "load -verbose /opt/notice/app/"
+
+    // Init Test data
+    do ##class(IBSP.Notice.InitMasterTables).Init()
+    do ##class(IBSP.Notice.LoadTestData).Load()
+    do ##class(%UnitTest.TestProduction).CreateCredentials("superuser", "superuser", "SYS")
+    write !, "Test credentials created"
+
+    // create SSL config
+    zn "HSSYS"
+    set tProps("Description") = ""
+	set sc = ##class(HS.Util.SystemAPI).Invoke("CreateSSLConfig", , "SSL", ##Class(HS.Util.SystemAPIMethods).NVPairToList(.tProps))
+    do $system.Status.DisplayError(sc)
+    write !, "SSL Config created"
 
     halt
