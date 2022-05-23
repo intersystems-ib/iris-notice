@@ -190,7 +190,7 @@ ClassMethod GetLanguage(requestLanguage As %String) As IBSP.Notice.DAT.Lang [ In
 
         set requestLanguage = $$$getLastTwoChars(requestLanguage)
         set:(requestLanguage '= "") language = ##class(IBSP.Notice.DAT.Lang).UIISOOpen(requestLanguage)
-        set:('$isobject(language)) language = ##class(IBSP.Notice.DAT.Lang).getDefault()
+        set:('$isobject(language)) language = ##class(IBSP.Notice.DAT.Lang).GetDefault()
     } catch ex {
         set language = ""
     }

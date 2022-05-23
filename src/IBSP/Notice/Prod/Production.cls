@@ -19,7 +19,7 @@ XData ProductionDefinition
     <Setting Target="Adapter" Name="HTTPServer">localhost</Setting>
     <Setting Target="Adapter" Name="URL">notice/api/test</Setting>
   </Item>
-  <Item Name="IBSP.API.NOT.Command.BS" Category="" ClassName="IBSP.API.NOT.Command.BS" PoolSize="0" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
+  <Item Name="IBSP.Notice.API.NOT.Command.BS" Category="" ClassName="IBSP.Notice.API.NOT.Command.BS" PoolSize="0" Enabled="true" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
   </Item>
   <Item Name="JavaGateway" Category="" ClassName="EnsLib.JavaGateway.Service" PoolSize="1" Enabled="false" Foreground="false" Comment="" LogTraceEvents="false" Schedule="">
     <Setting Target="Host" Name="JavaHome">/usr</Setting>

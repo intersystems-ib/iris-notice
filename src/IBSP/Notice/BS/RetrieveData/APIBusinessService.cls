@@ -92,7 +92,7 @@ Method Notify(apiResponse As EnsLib.HTTP.GenericMessage) As %Status [ Internal, 
 
     set iterData = data.%GetIterator()
 
-    while iterData.%GetNext(.key, .value, .type) {
+    while iterData.%GetNext(.key, .value) {
         $$$ReturnOnError(..CreateRequestAndSendToPublisher(value))
     }
 
@@ -100,6 +100,13 @@ Method Notify(apiResponse As EnsLib.HTTP.GenericMessage) As %Status [ Internal, 
 }
 
 Method GetValuesFromData(data As %RegisteredObject, ByRef values As %DynamicObject, parentObjName As %String = "") As %Status [ Internal, Private ]
+{
+    set systemVersion = $system.Version.GetMajor()
+    return:(systemVersion > 2020) ..GetValuesFromDataNew(data, .values, parentObjName)
+    return ..GetValuesFromDataOld(data, .values, parentObjName)
+}
+
+Method GetValuesFromDataNew(data As %RegisteredObject, ByRef values As %DynamicObject, parentObjName As %String = "") As %Status [ Internal, Private ]
 {
     set iter = data.%GetIterator()
 
@@ -109,6 +116,25 @@ Method GetValuesFromData(data As %RegisteredObject, ByRef values As %DynamicObje
         set:(parentObjName '= "") paramName = parentObjName _ "_" _ paramName
 
         if $$$IsObjectOrArray(type) {
+            do ..GetValuesFromData(value, .values, paramName)
+        } else {
+            do values.%Set(paramName, value)
+        }
+    }
+
+    return $$$OK
+}
+
+Method GetValuesFromDataOld(data As %RegisteredObject, ByRef values As %DynamicObject, parentObjName As %String = "") As %Status [ Internal, Private ]
+{
+    set iter = data.%GetIterator()
+
+    while iter.%GetNext(.key, .value) {
+
+        set paramName = key
+        set:(parentObjName '= "") paramName = parentObjName _ "_" _ paramName
+
+        if $isobject(value) {
             do ..GetValuesFromData(value, .values, paramName)
         } else {
             do values.%Set(paramName, value)

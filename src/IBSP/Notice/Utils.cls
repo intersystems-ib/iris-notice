@@ -173,7 +173,7 @@ ClassMethod GetTextParamsAsArray(params As %String, ByRef paramsArray As %String
 /// Gets the final text for a topic in the corresponding language and replaces the tags with the input parameters ARRAY
 ClassMethod GetTopicText(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, ByRef params, Output text As %String) As %Status
 {
-	#define DefaultLang ##class(Notice.DAT.Lang).GetDefault()
+	#define DefaultLang ##class(IBSP.Notice.DAT.Lang).GetDefault()
 
 	set tSC = $$$OK
 
@@ -204,7 +204,7 @@ ClassMethod GetTopicMessage(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.
 /// If there's no message for the default language either, the default message is returned.
 ClassMethod GetTranslatedMessage(messageID As %String, lang As IBSP.Notice.DAT.Lang, defaultMessage As %String = "") As %String
 {
-	#define DefaultLang ##class(Notice.DAT.Lang).GetDefault()
+	#define DefaultLang ##class(IBSP.Notice.DAT.Lang).GetDefault()
 	#define IsDefaultLang(%lang) (%lang = $$$DefaultLang)
 
 	set language = lang
@@ -253,7 +253,7 @@ ClassMethod ReplaceMessageTags(message As %String, formatText As %Boolean = 0, B
 	
 		set key = $order(params(key))
 		quit:(key = "")
-		set text = $replace(text, "##" _ $zconvert(key, "U") _ "##", $g(params(key)))
+		set text = $replace(text, "##" _ key _ "##", $g(params(key)))
 	} while key '= ""
 	
 	set text = ..RemoveNotUsedTags(text)
