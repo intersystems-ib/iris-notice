@@ -28,6 +28,7 @@ Method SendMessage(request As IBSP.Notice.Request.RESTNoticeRequest, Output resp
         $$$ThrowOnError(..Adapter.SendFormData(.httpResponse, "POST", httpRequest))
 
         set:(httpResponse.Data '= "") httpResponseData = {}.%FromJSON(httpResponse.Data)
+        set httpResponseData.ok = $$$YES
     } catch ex {
 
         set result = "ERROR"
