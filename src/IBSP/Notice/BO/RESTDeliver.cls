@@ -7,6 +7,16 @@ Property Adapter As EnsLib.HTTP.OutboundAdapter;
 
 Parameter INVOCATION = "Queue";
 
+Property Token As %String(MAXLEN = "");
+
+Parameter SETTINGS = "Token:Basic";
+
+Parameter AuthHeader = "Authorization";
+
+Parameter ApplicationJson = "application/json";
+
+Parameter UTF8 = "UTF-8";
+
 Method SendMessage(request As IBSP.Notice.Request.RESTNoticeRequest, Output response As %RegisteredObject) As %Status
 {
 	set result = "OK"
@@ -35,12 +45,28 @@ Method SendMessage(request As IBSP.Notice.Request.RESTNoticeRequest, Output resp
 
 Method BuildHttpRequest(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
 {
+    set httpRequest = ##class(%Net.HttpRequest).%New()
+    set httpRequest.ContentType = ..#ApplicationJson
+    set httpRequest.ContentCharset = ..#UTF8
+
+    $$$QuitOnError(..SetAuthorizationToken(.httpRequest))
+
+    return ..SetBody(request, .httpRequest)
+}
+
+Method SetAuthorizationToken(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
+{
+    return:(..Token = "") $$$OK
+
+    set bearerToken = "Bearer " _ ..Token
+    return httpRequest.SetHeader(..#AuthHeader, bearerToken)
+}
+
+Method SetBody(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
+{
     set textJSON = {}.%FromJSON(request.Text)
     do textJSON.%Set(request.Topic.ContactWay, request.ContactWayAddress)
     set text = textJSON.%ToJSON()
-    set httpRequest = ##class(%Net.HttpRequest).%New()
-    set httpRequest.ContentType = "application/json"
-    set httpRequest.ContentCharset = "UTF-8"
 
     return httpRequest.EntityBody.Write(text)
 }
