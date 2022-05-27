@@ -73,12 +73,23 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 <if name='Exist topics?' condition='context.topics.Size &gt; 0' xpos='740' ypos='850' xend='740' yend='1100' >
 <true>
 <foreach name='Loop over all topics' property='context.topics' key='context.k1' xpos='1010' ypos='1000' xend='200' yend='350' >
-<code name='Call Publisher' xpos='200' ypos='250' >
+<code name='Calculate text and call Publisher' xpos='200' ypos='250' >
 <![CDATA[ set topic = context.topics.GetAt(context.k1)
  
  if ##class(IBSP.Notice.Service.SubscriberService).IsSubscribedToTopic(request.Subscriber.%Id(), topic.TopicKey) {
+ 
+     set contactWayType = topic.ContactWay
+     set contactWayAddress = request.ContactWayAddress
+ 
+     if (contactWayAddress = "") {
+
+         set subscriberId = request.Subscriber.%Id()
+         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddress))
+     }
 
      $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+     set params(contactWayType) = contactWayAddress
+
      if topic.IsHttpOutboundAdapter() {
          $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
      } else {
@@ -88,6 +99,7 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
      set pullRequest = request
      set pullRequest.Topic = topic
      set pullRequest.Text = text
+     set pullRequest.ContactWayAddress = contactWayAddress
      $$$ThrowOnError(process.SendRequestAsync("IBSP.Notice.BP.Publisher", pullRequest))
  }
 ]]>
@@ -95,17 +107,17 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 </foreach>
 </true>
 <false>
-<assign property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Command" action="set" xpos='740' ypos='1000' />
+<assign name="No Topic error" property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Command" action="set" xpos='740' ypos='1000' />
 </false>
 </if>
 </true>
 <false>
-<assign property="response.StringValue" value="&quot;There's no action for &quot; _ request.Command" action="set" xpos='470' ypos='750' />
+<assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Command" action="set" xpos='470' ypos='750' />
 </false>
 </if>
 </true>
 <false>
-<assign property="response.StringValue" value="&quot;There's no user with &quot; _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" xpos='200' ypos='500' />
+<assign name="No Subscriber error" property="response.StringValue" value="&quot;There's no user with &quot; _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" xpos='200' ypos='500' />
 </false>
 </if>
 </sequence>

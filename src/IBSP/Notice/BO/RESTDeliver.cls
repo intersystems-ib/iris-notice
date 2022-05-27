@@ -66,7 +66,6 @@ Method SetAuthorizationToken(Output httpRequest As %Net.HttpRequest) As %Status 
 Method SetBody(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
 {
     set textJSON = {}.%FromJSON(request.Text)
-    do textJSON.%Set(request.Topic.ContactWay, request.ContactWayAddress)
     set text = textJSON.%ToJSON()
 
     return httpRequest.EntityBody.Write(text)
