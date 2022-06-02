@@ -103,7 +103,26 @@ Pull notifications must always be sent.]]></annotation>
 <annotation><![CDATA[Decide whether push notification has to be sent or not.
 Pull notifications must always be sent.]]></annotation>
 <![CDATA[ $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
- $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
+ 
+ if $zconvert(context.outboundAdapter, "L") = "http" {
+ 
+     set contactWayType = request.Topic.ContactWay
+     set contactWayAddress = request.ContactWayAddress
+ 
+     if (contactWayAddress = "") {
+
+         set subscriberId = request.Subscriber.%Id()
+         set contactWayType = request.Topic.ContactWay
+         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddress))
+         set request.ContactWayAddress = contactWayAddress
+     }
+     
+     set params(contactWayType) = contactWayAddress
+
+     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(request.Topic, .params, .text))
+ } else {
+     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
+ }
  set request.Text = text
 ]]>
 </code>
