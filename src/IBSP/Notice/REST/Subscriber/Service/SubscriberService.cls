@@ -100,6 +100,7 @@ ClassMethod DeleteSubscriber(cip As %String) As %DynamicObject
         $$$ThrowOnError(..DeleteSubscriberApplicationId(subscriber))
         $$$ThrowOnError(..DeleteSubscriberCip(subscriber))
         $$$ThrowOnError(..DeleteSubscriberSubscriptions(subscriber))
+        $$$ThrowOnError(..DeleteSubscriberNotifications(subscriber))
         $$$ThrowOnError(..DeleteSubscriberObj(subscriber))
         set executionResponse.result = $$$OK
         set response = ##class(IBSP.Notice.REST.Subscriber.Response.SaveSubscriberResponse).%New(-1)
@@ -331,6 +332,11 @@ ClassMethod DeleteSubscriberCip(subscriber As IBSP.Notice.DAT.Subscriber) As %St
 ClassMethod DeleteSubscriberSubscriptions(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
 {
     return ##class(IBSP.Notice.Service.SubscriptionService).DeleteAll(subscriber)
+}
+
+ClassMethod DeleteSubscriberNotifications(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    return ##class(IBSP.Notice.Service.NotificationService).DeleteAllBySubscriber(subscriber)
 }
 
 ClassMethod DeleteSubscriberObj(subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]

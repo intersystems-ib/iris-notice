@@ -64,4 +64,19 @@ ClassMethod GetNumNotificationsBySubscriber(subscriber As IBSP.Notice.DAT.Subscr
     return sc
 }
 
+ClassMethod DeleteAllBySubscriber(subscriber As IBSP.Notice.DAT.Subscriber) As %Status
+{
+    set subscriberId = subscriber.%Id()
+
+    &sql(
+        DELETE
+            FROM IBSP_Notice_DAT.Notification
+            WHERE Subscriber = :subscriberId
+    )
+
+    return:((SQLCODE '= 0) && (SQLCODE '= 100)) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.NotificationService.DeleteAllBySubscriber] SQLCODE error " _ SQLCODE _ " " _ %msg)
+
+    return $$$OK
+}
+
 }
