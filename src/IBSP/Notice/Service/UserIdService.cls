@@ -17,7 +17,7 @@ ClassMethod GetByTypeAndCode(type As %String, code As %String, Output userId As 
             AND Code = :code
     )
 
-    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetByTypeAndCode] SQLCODE error " _ SQLCODE _ " " _ %msg)
+    return:(SQLCODE < 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetByTypeAndCode] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
     set:(id > 0) userId = ##class(IBSP.Notice.DAT.UserID).%OpenId(id, .sc) 
 
@@ -49,7 +49,7 @@ ClassMethod Delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As
             AND Type = :type
     )
 
-    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.Delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
+    return:(SQLCODE < 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.Delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
     return $$$OK
 }
@@ -63,7 +63,7 @@ ClassMethod GetCodeBySubscriberIdAndType(subscriberId As %BigInt, type As %Strin
             AND Type = :type
     )
 
-    return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetCodeBySubscriberIdAndType] SQLCODE error " _ SQLCODE _ " " _ %msg)
+    return:(SQLCODE < 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.GetCodeBySubscriberIdAndType] SQLCODE error " _ SQLCODE _ " " _ %msg)
 
     return $$$OK
 }
