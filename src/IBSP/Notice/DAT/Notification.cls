@@ -47,12 +47,12 @@ ClassMethod queryLIST() As %String
     quit "%id _id, " _
          "to_char(""Date"",'YYYY-MM-DD HH24:mi:ss') As ""Date"", " _
          "NotificationType As ""Type"", " _
-         "case " _
+         "replace(case " _
          "  when length(replace(replace(Text, CHAR(10), ''), '\', '')) < 61 then " _
          "    replace(replace(Text, CHAR(10), ''), '\', '') " _ 
          "  else " _
          "    substr(replace(replace(Text, CHAR(10), ''), '\', ''), 1, 60) || '...' " _
-         "end Text "
+         "end , '""', '\""') Text"
 }
 
 Storage Default

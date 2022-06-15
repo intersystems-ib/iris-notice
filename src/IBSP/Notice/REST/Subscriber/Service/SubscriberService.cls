@@ -43,11 +43,11 @@ ClassMethod UpdateSubscriber(request As IBSP.Notice.REST.Subscriber.Request.Upda
 
         TSTART
 
-        $$$ThrowOnError(..GetSubscriberByCip(request.cip, .subscriber))
+        $$$ThrowOnError(..GetSubscriberByApplicationId(request.applicationId, .subscriber))
         $$$ThrowOnError(..ValidateTopics(request.topicsToAdd))
         $$$ThrowOnError(..ValidateTopics(request.topicsToDelete))
         $$$ThrowOnError(..UpdateSubscriberFromRequest(request, subscriber))
-        $$$ThrowOnError(..UpdateApplicationIdFromRequest(subscriber, request))
+        $$$ThrowOnError(..UpdateCipFromRequest(subscriber, request))
         $$$ThrowOnError(..UpdateSubscriptionsFromRequest(subscriber, request))
 
         set executionResponse.result = $$$OK
@@ -114,7 +114,7 @@ ClassMethod DeleteSubscriber(cip As %String) As %DynamicObject
 
     do executionResponse.%JSONExportToString(.responseString)
 
-    quit {}.%FromJSON(responseString)
+    return {}.%FromJSON(responseString)
 }
 
 ClassMethod ValidateIfUserAlreadyExists(cip As %String) As %Status [ Internal, Private ]
@@ -202,9 +202,17 @@ ClassMethod GetLanguage(requestLanguage As %String) As IBSP.Notice.DAT.Lang [ In
 ClassMethod GetSubscriberByCip(cip As %String, Output subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
 {
     $$$QuitOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId($$$CIP, cip, .subscriber))
-    set:('$isobject(subscriber)) sc = $$$ERROR($$$GeneralError, "User with cip " _ cip _ " doesn't exist")
+    return:('$isobject(subscriber)) $$$ERROR($$$GeneralError, "User with cip " _ cip _ " doesn't exist")
 
-    quit $$$OK
+    return $$$OK
+}
+
+ClassMethod GetSubscriberByApplicationId(applicationId As %String, Output subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
+{
+    $$$QuitOnError(##class(IBSP.Notice.Service.SubscriberService).GetByContactWay($$$ApplicationId, applicationId, .subscriber))
+    return:('$isobject(subscriber)) $$$ERROR($$$GeneralError, "User with applicationId " _ applicationId _ " doesn't exist")
+
+    return $$$OK
 }
 
 ClassMethod UpdateSubscriberFromRequest(request As IBSP.Notice.REST.Subscriber.Request.UpdateSubscriberRequest, subscriber As IBSP.Notice.DAT.Subscriber) As %Status [ Internal, Private ]
@@ -221,6 +229,11 @@ ClassMethod UpdateSubscriberFromRequest(request As IBSP.Notice.REST.Subscriber.R
 ClassMethod UpdateApplicationIdFromRequest(subscriber As IBSP.Notice.DAT.Subscriber, request As IBSP.Notice.REST.Subscriber.Request.UpdateSubscriberRequest) As %Status [ Internal, Private ]
 {
     return ##class(IBSP.Notice.Service.ContactWayService).Update(subscriber, $$$ApplicationId, request.applicationId)
+}
+
+ClassMethod UpdateCipFromRequest(subscriber As IBSP.Notice.DAT.Subscriber, request As IBSP.Notice.REST.Subscriber.Request.UpdateSubscriberRequest) As %Status [ Internal, Private ]
+{
+    return ##class(IBSP.Notice.Service.UserIdService).Update(subscriber, $$$CIP, request.cip)
 }
 
 ClassMethod UpdateSubscriptionsFromRequest(subscriber As IBSP.Notice.DAT.Subscriber, request As IBSP.Notice.REST.Subscriber.Request.UpdateSubscriberRequest) As %Status [ Internal, Private ]

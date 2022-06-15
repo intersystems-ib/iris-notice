@@ -36,6 +36,24 @@ ClassMethod Create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, co
     return userID.%Save(0)
 }
 
+ClassMethod Update(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, code As %String) As %Status
+{
+    return:(code = "") $$$OK
+
+    set subscriberId = subscriber.%Id()
+
+    &sql(
+        UPDATE IBSP_Notice_DAT.UserId
+            SET Code = :code
+            WHERE Subscriber = :subscriberId
+            AND Type = :type
+    )
+
+    return:(SQLCODE < 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.UserIdService.Update] SQLCODE error " _ SQLCODE _ " " _ %msg)
+
+    return $$$OK
+}
+
 ClassMethod Delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As %Status
 {
     return:(type = "") $$$OK
