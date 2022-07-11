@@ -94,6 +94,31 @@ ClassMethod GetAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %St
     return sc
 }
 
+ClassMethod GetAddressesBySubscriberIdAndType(subscriberId As %BigInt, type As %String, Output addresses As %ListOfDataTypes) As %Status
+{
+    set sc = $$$OK
+    set addresses = ##class(%ListOfDataTypes).%New()
+
+    try {
+        set select = "SELECT Address "
+        set from = "FROM IBSP_Notice_DAT.ContactWay "
+        set where = "WHERE Subscriber = ? AND Type = ? "
+        set orderBy = "ORDER BY Address"
+        set query = select _ from _ where _ orderBy
+
+        set result = ##class(%SQL.Statement).%ExecDirect(, query, subscriberId, type)
+        while result.%Next() {
+
+            set address = result.%Get("Address")
+            do addresses.Insert(address)
+        }
+    } catch ex {
+        set sc = ex.AsStatus()
+    }
+
+    return sc
+}
+
 ClassMethod GetTelegramAddressBySubscriber(subscriber As IBSP.Notice.DAT.Subscriber, Output telegramAddress As %String(MAXLEN="")) As %Status
 {
     return ..GetAddressBySubscriberIdAndType(subscriber.%Id(), ..#ContactWayTelegramType, .telegramAddress)

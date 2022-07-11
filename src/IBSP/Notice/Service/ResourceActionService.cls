@@ -28,7 +28,7 @@ ClassMethod GetTopicsByResourceAction(resourceAction As IBSP.Notice.DAT.Resource
 			set topicId = result.%Get("Topic")
 			set topic = ##class(IBSP.Notice.DAT.Topic).%OpenId(topicId)
 
-			do topics.Insert(topic)
+			do:(topic.Active) topics.Insert(topic)
 		}
 
     } catch ex {

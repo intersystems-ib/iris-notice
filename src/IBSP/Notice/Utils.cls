@@ -256,6 +256,7 @@ ClassMethod ReplaceMessageTags(message As %String, formatText As %Boolean = 0, B
 		set text = $replace(text, "##" _ key _ "##", $g(params(key)))
 	} while key '= ""
 	
+	set text = ..RemoveNotFilledConditions(text)
 	set text = ..RemoveNotUsedTags(text)
 	set:('formatText) text = ..FormatText(text)
 
@@ -297,29 +298,84 @@ ClassMethod FormatCommandText(text As %String) As %String
 	quit text
 }
 
+ClassMethod RemoveNotFilledConditions(text As %String) As %String [ Internal, Private ]
+{
+	set header = "[[", trailer = "]]"
+	set pos1 = 1, pos2 = 1, aux = 1
+	set tagHeader = "##"
+	set aux2 = 1
+	set textNoEmptyConditions = ""
+
+	do {
+
+		set pos1 = $find(text, header, pos2)
+
+		if pos1 '= 0 {
+
+			set aux = $find(text, trailer, pos1)
+
+			if aux '= 0 {
+
+				set aux2 = $find(text, tagHeader, pos1)
+
+				if (aux2 > pos1) && (aux2 < aux) {
+					set textNoEmptyConditions = textNoEmptyConditions _ $extract(text, pos2, pos1 - $l(header) - 1)
+				} else {
+					set textNoEmptyConditions = textNoEmptyConditions _ $extract(text, pos2, aux - 1)
+				}
+			} else {
+
+				// if trailer is not found, copy the last part of the text (at least with a wrong not closed condition) and finish looking for conditions
+				set textNoEmptyConditions = textNoEmptyConditions _ $extract(text, pos2, *)
+				set pos1 = 0
+			}
+
+			set pos2 = aux
+		} else {
+
+			// if no more conditions found copy the last part of the text
+			set textNoEmptyConditions = textNoEmptyConditions _ $extract(text, pos2, *)
+		}
+
+	} while pos1 '= 0
+
+	set textNoEmptyConditions = $replace(textNoEmptyConditions, "[[", "")
+	set textNoEmptyConditions = $replace(textNoEmptyConditions, "]]", "")
+
+	return textNoEmptyConditions
+}
+
 /// Remove all i.e. ##TAG## that weren't parsed
 ClassMethod RemoveNotUsedTags(text As %String) As %String [ Internal, Private ]
 {
 	set header = "##", trailer = "##"
 	set pos1 = 1, pos2 = 1, aux = 1
 	set textNoTags = ""
+
 	do {
-		set pos1 = $find(text,header,pos2)
-		if pos1'=0 {
-			set aux = $find(text,trailer,pos1)
-			if aux'=0 {
-				set textNoTags = textNoTags _ $extract(text,pos2, pos1-$l(header)-1)
-			}else{
+
+		set pos1 = $find(text, header, pos2)
+
+		if pos1 '= 0 {
+
+			set aux = $find(text, trailer, pos1)
+
+			if aux '= 0 {
+				set textNoTags = textNoTags _ $extract(text, pos2, pos1 - $l(header) - 1)
+			} else {
+
 				// if trailer is not found, copy the last part of the text (at least with a wrong not closed tag) and finish looking for tags
-				set textNoTags = textNoTags _ $extract(text,pos2, *)
+				set textNoTags = textNoTags _ $extract(text, pos2, *)
 				set pos1 = 0
 			}
+
 			set pos2 = aux
-		}else{
+		} else {
+
 			// if no more tags found copy the last part of the text
-			set textNoTags = textNoTags _ $extract(text,pos2, *)
+			set textNoTags = textNoTags _ $extract(text, pos2, *)
 		}
-	}while pos1 '= 0
+	} while pos1 '= 0
 	
 	quit textNoTags
 }

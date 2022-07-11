@@ -123,8 +123,7 @@ Pull notifications must always be sent.]]></annotation>
  } else {
      $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
  }
- set request.Text = text
-]]>
+ set request.Text = text]]>
 </code>
 </case>
 <default name='default' />
@@ -134,22 +133,27 @@ Pull notifications must always be sent.]]></annotation>
 <code name='Send Telegram Notification' xpos='470' ypos='1350' >
 <![CDATA[ try {
  
-     set telegramRequest = ##class(IBSP.Notice.Request.TelegramNoticeRequest).%New(request)
+     set telegramAddresses = ##class(%ListOfDataTypes).%New()
      
-     if (telegramRequest.Token = "") {
-     
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicToken(telegramRequest.Topic, .token))
-         set telegramRequest.Token = token
+     if (request.ContactWayAddress '= "") {
+         do telegramAddresses.Insert(request.ContactWayAddress)
+     } else {
+         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressesBySubscriberIdAndType(request.Subscriber.%Id(), "telegram", .telegramAddresses))
      }
+     
+     for i = 1: 1: telegramAddresses.Size {
+     
+         set telegramAddress = telegramAddresses.GetAt(i)
+         
+         set telegramRequest = ##class(IBSP.Notice.Request.TelegramNoticeRequest).%New(request)
+     
+         if (telegramRequest.Token = "") {
+     
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicToken(telegramRequest.Topic, .token))
+             set telegramRequest.Token = token
+         }
 
-     if (telegramRequest.ContactWayAddress = "") {
-  
-         set telegrarmAddress = ""
-         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetTelegramAddressBySubscriber(telegramRequest.Subscriber, .telegramAddress))
          set telegramRequest.ContactWayAddress = telegramAddress
-     }
-
-     if (telegramRequest.ContactWayAddress '= "") {
 
          if telegramRequest.isPullNotification() {
 
@@ -174,28 +178,35 @@ Pull notifications must always be sent.]]></annotation>
 <![CDATA[ try {
  
      set topic = request.Topic
-
-     set emailRequest = ##class(IBSP.Notice.Request.EmailNoticeRequest).%New(request)
      
-     set:($isobject(topic)) emailRequest.Subject = ##class(IBSP.Notice.Utils).GetTranslatedMessage(topic.SubjectMsg, emailRequest.Subscriber.Lang, topic.Subject)
+     set emailAddresses = ##class(%ListOfDataTypes).%New()
      
-     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicManagerNotification(topic, .managerNotification))
-     set emailRequest.ManagerNotification = managerNotification
-
-     if (emailRequest.ContactWayAddress = "") {
-
-         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetEmailAddressBySubscriber(emailRequest.Subscriber, .emailAddress))
-         set emailRequest.ContactWayAddress = emailAddress
+     if request.ContactWayAddress '= "" {
+         do emailAddresses.Insert(request.ContactWayAddress)
+     } else {
+         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressesBySubscriberIdAndType(request.Subscriber.%Id(), "email", .emailAddresses))
      }
      
-     $$$ThrowOnError(process.SendRequestAsync("IBSP.Notice.BO.EmailDeliver", emailRequest, .response))
+     for i = 1: 1: emailAddresses.Size {
+     
+         set emailAddress = emailAddresses.GetAt(i)
+         set emailRequest = ##class(IBSP.Notice.Request.EmailNoticeRequest).%New(request)
+         set:($isobject(topic)) emailRequest.Subject = ##class(IBSP.Notice.Utils).GetTranslatedMessage(topic.SubjectMsg, emailRequest.Subscriber.Lang, topic.Subject)
+         
+         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicManagerNotification(topic, .managerNotification))
+         set emailRequest.ManagerNotification = managerNotification
+         
+         set emailRequest.ContactWayAddress = emailAddress
+         
+         $$$ThrowOnError(process.SendRequestAsync("IBSP.Notice.BO.EmailDeliver", emailRequest))
+     }
  } catch ex {
      $$$LOGERROR("Error: " _ ex.DisplayString())
  }]]>
 </code>
 </case>
-<case condition='$zconvert(context.outboundAdapter, "L") = "http"' name='HTTP' >
-<code name='Send HTTP Notification' xpos='1010' ypos='1350' >
+<case condition='($zconvert(context.outboundAdapter, "L") = "http") || ($zconvert(context.outboundAdapter, "L") = "sms")' name='HTTP / SMS' >
+<code name='Send HTTP/SMS Notification' xpos='1010' ypos='1350' >
 <![CDATA[ try {
  
      set restRequest = ##class(IBSP.Notice.Request.RESTNoticeRequest).%New(request)

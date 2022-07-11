@@ -60,8 +60,6 @@ Method SendRESTRequest(pText As %String, pFormat As %String, pBotToken As %Strin
 		$$$ThrowOnError(..SetRequest(pText, pFormat, pChatID, pReplyId, pSilent, .request))
 		$$$ThrowOnError(..SetXAuthToken(.request, pBotToken))
 		$$$ThrowOnError(..Adapter.SendFormData(.tResponse, "POST", request))
-     	$$$TRACE("SizeResponseData:" _ tResponse.Data.SizeGet())
-		$$$TRACE("JSON respuesta:" _ tResponse.Data.Read())
         do tResponse.Data.Rewind()
 		set pResponse = {}.%FromJSON(tResponse.Data)
 	} catch errObj {
@@ -89,7 +87,6 @@ Method SetRequest(pText As %String, pFormat As %String, pChatID As %String, pRep
 		set json."parse_mode" = $case(pFormat, "": ..DefaultFormat, : pFormat)
 		set jsonString = json.%ToJSON()
 		
-		$$$TRACE("JSON salida:" _ jsonString)
 		set pHTTPRequest = ##class(%Net.HttpRequest).%New()
 		set pHTTPRequest.ContentType = "application/json"
 		set pHTTPRequest.ContentCharset = "UTF-8"

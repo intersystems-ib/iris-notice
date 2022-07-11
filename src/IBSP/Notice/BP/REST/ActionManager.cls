@@ -76,31 +76,34 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 <code name='Calculate text and call Publisher' xpos='200' ypos='250' >
 <![CDATA[ set topic = context.topics.GetAt(context.k1)
  
- if ##class(IBSP.Notice.Service.SubscriberService).IsSubscribedToTopic(request.Subscriber.%Id(), topic.TopicKey) {
+ set subscriberId = request.Subscriber.%Id()
+
+ if ##class(IBSP.Notice.Service.SubscriberService).IsSubscribedToTopic(subscriberId, topic.TopicKey) {
  
      set contactWayType = topic.ContactWay
-     set contactWayAddress = request.ContactWayAddress
- 
-     if (contactWayAddress = "") {
+     $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressesBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddresses))
+     
+     for i = 1: 1: contactWayAddresses.Size {
+     
+         set contactWayAddress = contactWayAddresses.GetAt(i)
 
-         set subscriberId = request.Subscriber.%Id()
-         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddress))
+         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+         set params(contactWayType) = contactWayAddress
+
+         if topic.TemplateMsg '= "" {
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, request.Subscriber.Lang, .params, .text))
+             set params("msg") = text
+         }
+         if topic.BodyTemplate '= "" {
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
+         }
+
+         set pullRequest = request
+         set pullRequest.Topic = topic
+         set pullRequest.Text = text
+         set pullRequest.ContactWayAddress = contactWayAddress
+         $$$ThrowOnError(process.SendRequestSync("IBSP.Notice.BP.Publisher", pullRequest, .resp))
      }
-
-     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
-     set params(contactWayType) = contactWayAddress
-
-     if topic.IsHttpOutboundAdapter() {
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
-     } else {
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, request.Subscriber.Lang, .params, .text))
-     }
-
-     set pullRequest = request
-     set pullRequest.Topic = topic
-     set pullRequest.Text = text
-     set pullRequest.ContactWayAddress = contactWayAddress
-     $$$ThrowOnError(process.SendRequestAsync("IBSP.Notice.BP.Publisher", pullRequest))
  }
 ]]>
 </code>

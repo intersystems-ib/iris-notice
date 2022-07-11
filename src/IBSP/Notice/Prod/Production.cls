@@ -71,6 +71,13 @@ where Type = "employeeid"</Setting>
     <Setting Target="Adapter" Name="SSLCheckServerIdentity">0</Setting>
     <Setting Target="Adapter" Name="SSLConfig">SSL</Setting>
   </Item>
+  <Item Name="SMS Deliver" Category="" ClassName="IBSP.Notice.BO.RESTDeliver" PoolSize="1" Enabled="true" Foreground="false" Comment="" LogTraceEvents="true" Schedule="">
+    <Setting Target="Adapter" Name="Credentials">SMS_Lleidanet</Setting>
+    <Setting Target="Adapter" Name="HTTPPort">443</Setting>
+    <Setting Target="Adapter" Name="HTTPServer">api.lleida.net</Setting>
+    <Setting Target="Adapter" Name="SSLConfig">SSL</Setting>
+    <Setting Target="Adapter" Name="URL">/sms/v2/</Setting>
+  </Item>
 </Production>
 }
 

@@ -27,11 +27,18 @@ Method SendMessage(request As IBSP.Notice.Request.RESTNoticeRequest, Output resp
 		$$$ThrowOnError(..BuildHttpRequest(request, .httpRequest))
         $$$ThrowOnError(..Adapter.SendFormData(.httpResponse, "POST", httpRequest))
 
-        set:(httpResponse.Data '= "") httpResponseData = {}.%FromJSON(httpResponse.Data)
+        if (httpResponse.Data '= "") {
+            if (httpResponse.ContentType["text/html") {
+                set httpResponseData.data = httpResponse.Data.Read()
+            } else {
+                set httpResponseData = {}.%FromJSON(httpResponse.Data)
+            }
+        }
+
         set httpResponseData.ok = $$$YES
     } catch ex {
 
-        set result = "ERROR"
+        set result = "ERROR " _ex.DisplayString()
 
         set httpResponseData = {}
         set httpResponseData.ok = $$$NO
@@ -50,9 +57,15 @@ Method BuildHttpRequest(request As IBSP.Notice.Request.RESTNoticeRequest, Output
     set httpRequest.ContentType = ..#ApplicationJson
     set httpRequest.ContentCharset = ..#UTF8
 
-    $$$QuitOnError(..SetAuthorizationToken(.httpRequest))
+    $$$QuitOnError(..SetAuthentication(.httpRequest))
 
     return ..SetBody(request, .httpRequest)
+}
+
+Method SetAuthentication(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
+{
+    $$$QuitOnError(..SetAuthorizationToken(.httpRequest))
+    return ..SetAuthorizationCredentials(.httpRequest)
 }
 
 Method SetAuthorizationToken(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
@@ -61,6 +74,19 @@ Method SetAuthorizationToken(Output httpRequest As %Net.HttpRequest) As %Status 
 
     set bearerToken = "Bearer " _ ..Token
     return httpRequest.SetHeader(..#AuthHeader, bearerToken)
+}
+
+Method SetAuthorizationCredentials(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
+{
+    set credentials = ##class(Ens.Config.Credentials).%OpenId(..Adapter.Credentials)
+    return:('$isobject(credentials)) $$$OK
+
+    set username = credentials.Username
+    set password = credentials.PasswordGet()
+    set encodedCredentials = $system.Encryption.Base64Encode(username_":"_password)
+
+    set basicAuth = "Basic " _ encodedCredentials
+    return httpRequest.SetHeader(..#AuthHeader, basicAuth)
 }
 
 Method SetBody(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
