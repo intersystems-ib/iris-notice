@@ -3,6 +3,8 @@ Class IBSP.Notice.Request.PushNoticeRequest Extends IBSP.Notice.Request.NoticeRe
 
 Property SendIfPublished As %String;
 
+Property Action As %String;
+
 Method %OnNew() As %Status [ Private, ServerOnly = 1 ]
 {
     set ..NotificationType = "PUSH"
@@ -51,6 +53,9 @@ Storage Default
 </Value>
 <Value name="13">
 <Value>Topic</Value>
+</Value>
+<Value name="14">
+<Value>Action</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notic7B55.PushNoticeR4BC3D</DataLocation>

@@ -36,7 +36,7 @@ ClassMethod BuildRequest(resource As %String, action As %String = "-") As IBSP.N
     set requestJSON = {}.%FromJSON(%request.Content)
     set userIdType = requestJSON.%Remove("userIdType")
     set userIdCode = requestJSON.%Remove("userIdCode")
-    do requestJSON.%Set(userIdType, userIdCode)
+    do:(userIdType '= "") requestJSON.%Set(userIdType, userIdCode)
 
     set request.resource = resource
     set request.action = action

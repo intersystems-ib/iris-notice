@@ -10,36 +10,32 @@ Storage Default
 /// BPL Definition
 XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 {
-<process language='objectscript' request='IBSP.Notice.Request.PullNoticeRequest' response='Ens.StringResponse' height='2000' width='2000' >
+<process language='objectscript' request='IBSP.Notice.Request.PushNoticeRequest' response='Ens.StringResponse' height='2000' width='2000' >
 <context>
 <property name='resourceAction' type='IBSP.Notice.DAT.ResourceAction' instantiate='0' />
 <property name='subscriber' type='IBSP.Notice.DAT.Subscriber' instantiate='0' />
 <property name='topics' type='IBSP.Notice.DAT.Topic' collection='list' instantiate='0' />
-<property name='subscriberTopics' type='IBSP.Notice.DAT.Topic' collection='list' instantiate='0' />
 <property name='k1' type='%String' instantiate='0' >
 <parameters>
 <parameter name='MAXLEN'  value='50' />
 </parameters>
 </property>
-<property name='publisherRequest' type='IBSP.Notice.Request.PullNoticeRequest' instantiate='0' />
 </context>
 <sequence xend='200' yend='1400' >
 <code name='Get Subscriber' xpos='200' ypos='250' >
 <![CDATA[ try {
  
      $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(request.UserIdType, request.UserIdCode, .subscriber))
-     set:(subscriber '= "") request.Subscriber = subscriber
+     set:(subscriber '= "") context.subscriber = subscriber
  } catch ex {
      $$$LOGERROR("Error: " _ ex.DisplayString())
  }
 ]]>
 </code>
-<if name='Exists subscriber?' condition='request.Subscriber &apos;= ""' xpos='200' ypos='350' xend='200' yend='1300' >
-<true>
 <code name='Get ResourceAction' xpos='470' ypos='500' >
 <![CDATA[ try {
 
-     set command = request.Command
+     set command = request.Action
  
      if command '= "" {
  
@@ -76,33 +72,48 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 <code name='Calculate text and call Publisher' xpos='200' ypos='250' >
 <![CDATA[ set topic = context.topics.GetAt(context.k1)
  
- set subscriberId = request.Subscriber.%Id()
+ set subscribers = ##class(%ListOfObjects).%New()
+ if context.subscriber '= "" {
+     do:(##class(IBSP.Notice.Service.SubscriberService).IsSubscribedToTopic(context.subscriber.%Id(), topic.TopicKey)) subscribers.Insert(context.subscriber)
+ } else {
+     set params = {}.%FromJSON(request.TextParams)
+     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicUserId(topic, params, .userIdType, .userIdCode))
+     $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(userIdType, userIdCode, .subscriber))
+     if subscriber '= "" {
+         do subscribers.Insert(subscriber)
+     } else {
+         $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByTopic(topic.TopicKey, .subscribers))
+     }
+ }
+ 
+ for i = 1: 1: subscribers.Size {
 
- if ##class(IBSP.Notice.Service.SubscriberService).IsSubscribedToTopic(subscriberId, topic.TopicKey) {
+     set subscriber = subscribers.GetAt(i)
  
      set contactWayType = topic.ContactWay
-     $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressesBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddresses))
+     $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressesBySubscriberIdAndType(subscriber.%Id(), contactWayType, .contactWayAddresses))
      
-     for i = 1: 1: contactWayAddresses.Size {
+     for j = 1: 1: contactWayAddresses.Size {
      
-         set contactWayAddress = contactWayAddresses.GetAt(i)
+         set contactWayAddress = contactWayAddresses.GetAt(j)
 
          $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
          set params(contactWayType) = contactWayAddress
 
          if topic.TemplateMsg '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, request.Subscriber.Lang, .params, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, subscriber.Lang, .params, .text))
              set params("msg") = text
          }
          if topic.BodyTemplate '= "" {
              $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
          }
 
-         set pullRequest = request
-         set pullRequest.Topic = topic
-         set pullRequest.Text = text
-         set pullRequest.ContactWayAddress = contactWayAddress
-         $$$ThrowOnError(process.SendRequestSync("IBSP.Notice.BP.Publisher", pullRequest, .resp))
+         set pushRequest = request
+         set pushRequest.Topic = topic
+         set pushRequest.Text = text
+         set pushRequest.ContactWayAddress = contactWayAddress
+         set pushRequest.Subscriber = subscriber
+         $$$ThrowOnError(process.SendRequestSync("IBSP.Notice.BP.Publisher", pushRequest, .resp))
      }
  }
 ]]>
@@ -116,11 +127,6 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 </true>
 <false>
 <assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Command" action="set" xpos='470' ypos='750' />
-</false>
-</if>
-</true>
-<false>
-<assign name="No Subscriber error" property="response.StringValue" value="&quot;There's no user with &quot; _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" xpos='200' ypos='500' />
 </false>
 </if>
 </sequence>

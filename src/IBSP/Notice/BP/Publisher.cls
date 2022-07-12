@@ -45,7 +45,9 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
      set topic = request.Topic
      set:($isobject(topic)) context.outboundAdapter = topic.OutboundAdapter
  
-     if (request.UserIdType '= "") && (request.UserIdCode '= "") {
+     if request.Subscriber '= "" {
+         do context.subscribers.Insert(request.Subscriber)
+     } elseif (request.UserIdType '= "") && (request.UserIdCode '= "") {
  
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(request.UserIdType, request.UserIdCode, .subscriber))
          if subscriber = "" {
@@ -102,28 +104,38 @@ Pull notifications must always be sent.]]></annotation>
 <code name='Calculate text' xpos='470' ypos='1000' >
 <annotation><![CDATA[Decide whether push notification has to be sent or not.
 Pull notifications must always be sent.]]></annotation>
-<![CDATA[ $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+<![CDATA[ if request.Text = "" {
  
- if $zconvert(context.outboundAdapter, "L") = "http" {
+     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
  
-     set contactWayType = request.Topic.ContactWay
-     set contactWayAddress = request.ContactWayAddress
+     if $zconvert(context.outboundAdapter, "L") = "http" {
  
-     if (contactWayAddress = "") {
-
-         set subscriberId = request.Subscriber.%Id()
          set contactWayType = request.Topic.ContactWay
-         $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddress))
-         set request.ContactWayAddress = contactWayAddress
-     }
-     
-     set params(contactWayType) = contactWayAddress
+         set contactWayAddress = request.ContactWayAddress
+ 
+         if (contactWayAddress = "") {
 
-     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(request.Topic, .params, .text))
- } else {
-     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
- }
- set request.Text = text]]>
+             set subscriberId = request.Subscriber.%Id()
+             set contactWayType = request.Topic.ContactWay
+             $$$ThrowOnError(##class(IBSP.Notice.Service.ContactWayService).GetAddressBySubscriberIdAndType(subscriberId, contactWayType, .contactWayAddress))
+             set request.ContactWayAddress = contactWayAddress
+         }
+     
+         set params(contactWayType) = contactWayAddress
+
+         if request.Topic.TemplateMsg '= "" {
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
+             set params("msg") = text
+         }
+         if request.Topic.BodyTemplate '= "" {
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(request.Topic, .params, .text))
+         }
+            
+     } else {
+         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
+     }
+     set request.Text = text
+ }]]>
 </code>
 </case>
 <default name='default' />
