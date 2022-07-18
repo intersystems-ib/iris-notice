@@ -8,6 +8,8 @@ Storage Default
 }
 
 /// BPL Definition
+
+/// BPL Definition
 XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 {
 <process language='objectscript' request='IBSP.Notice.Request.PushNoticeRequest' response='Ens.StringResponse' height='2000' width='2000' >
@@ -32,6 +34,8 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
  }
 ]]>
 </code>
+<if name='Exists Subscriber?' condition='(context.subscriber &apos;= "") || ((request.UserIdType = "") &amp;&amp; (request.UserIdCode = ""))' xpos='200' ypos='350' xend='200' yend='1300' >
+<true>
 <code name='Get ResourceAction' xpos='470' ypos='500' >
 <![CDATA[ try {
 
@@ -78,9 +82,9 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
  } else {
      set params = {}.%FromJSON(request.TextParams)
      $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicUserId(topic, params, .userIdType, .userIdCode))
-     $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(userIdType, userIdCode, .subscriber))
-     if subscriber '= "" {
-         do subscribers.Insert(subscriber)
+     if (userIdType '= "" && userIdCode '= "") {
+         $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(userIdType, userIdCode, .subscriber))
+         do:(subscriber '= "") subscribers.Insert(subscriber)
      } else {
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByTopic(topic.TopicKey, .subscribers))
      }
@@ -121,12 +125,17 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 </foreach>
 </true>
 <false>
-<assign name="No Topic error" property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Command" action="set" xpos='740' ypos='1000' />
+<assign name="No Topic error" property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Action" action="set" xpos='740' ypos='1000' />
 </false>
 </if>
 </true>
 <false>
-<assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Command" action="set" xpos='470' ypos='750' />
+<assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Action" action="set" xpos='470' ypos='750' />
+</false>
+</if>
+</true>
+<false>
+<assign name="No Subscriber error" property="response.StringValue" value="&quot;There's no subscriber for &quot;  _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" xpos='200' ypos='500' />
 </false>
 </if>
 </sequence>

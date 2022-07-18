@@ -5,7 +5,7 @@ ClassMethod GetByUserId(userIdType As %String, userIdCode As %String, Output sub
 {
     set subscriber = ""
     $$$QuitOnError(##class(IBSP.Notice.Service.UserIdService).GetByTypeAndCode(userIdType, userIdCode, .userId))
-    set:($isobject(userId)) subscriber = userId.Subscriber
+    set:($isobject(userId) && userId.Subscriber.Active) subscriber = userId.Subscriber
 
     return $$$OK
 }
@@ -14,7 +14,7 @@ ClassMethod GetByContactWay(contactWayType As %String, contactWayAddress As %Str
 {
     set subscriber = ""
     $$$QuitOnError(##class(IBSP.Notice.Service.ContactWayService).GetByTypeAndAddress(contactWayType, contactWayAddress, .contactWay))
-    set:($isobject(contactWay)) subscriber = contactWay.Subscriber
+    set:($isobject(contactWay) && contactWay.Subscriber.Active) subscriber = contactWay.Subscriber
 
     return $$$OK
 }
@@ -38,7 +38,7 @@ ClassMethod GetByTopic(topicKey As %String, Output subscribers As %ListOfObjects
 
             set subscriberId = result.%Get("Subscriber")
             set subscriber = ##class(IBSP.Notice.DAT.Subscriber).%OpenId(subscriberId)
-            do subscribers.Insert(subscriber)
+            do:(subscriber.Active) subscribers.Insert(subscriber)
         }
     } catch ex {
         set sc = ex.AsStatus()
