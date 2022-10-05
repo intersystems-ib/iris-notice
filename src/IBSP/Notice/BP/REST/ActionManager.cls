@@ -8,7 +8,6 @@ Storage Default
 }
 
 /// BPL Definition
-
 /// BPL Definition
 XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 {
@@ -82,7 +81,7 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
  } else {
      set params = {}.%FromJSON(request.TextParams)
      $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicUserId(topic, params, .userIdType, .userIdCode))
-     if (userIdType '= "" && userIdCode '= "") {
+     if ((userIdType '= "") && (userIdCode '= "")) {
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(userIdType, userIdCode, .subscriber))
          do:(subscriber '= "") subscribers.Insert(subscriber)
      } else {
@@ -118,6 +117,8 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
          set pushRequest.ContactWayAddress = contactWayAddress
          set pushRequest.Subscriber = subscriber
          $$$ThrowOnError(process.SendRequestSync("IBSP.Notice.BP.Publisher", pushRequest, .resp))
+         
+         set response.StringValue = resp.result
      }
  }
 ]]>

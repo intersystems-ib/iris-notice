@@ -48,6 +48,8 @@ Property BodyTemplate As %String(MAXLEN = "");
 
 Property ExecutionComponent As %String(MAXLEN = "");
 
+Property ValidationCommand As %String(MAXLEN = "");
+
 Index UITopicKey On TopicKey [ Unique ];
 
 /// Indicates the HTML Topic format
@@ -131,6 +133,9 @@ Storage Default
 </Value>
 <Value name="15">
 <Value>ExecutionComponent</Value>
+</Value>
+<Value name="16">
+<Value>ValidationCommand</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.TopicD</DataLocation>

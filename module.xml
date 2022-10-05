@@ -3,7 +3,7 @@
   <Document name="notice.ZPM">
     <Module>
       <Name>notice</Name>
-      <Version>1.0.0</Version>
+      <Version>1.1.0</Version>
       <Description>InterSystems IRIS for Health application to send notifications to subscribers</Description>
       <Keywords>notice iris healthconnect ibsp</Keywords>
       <Author>
