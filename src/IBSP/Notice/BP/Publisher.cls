@@ -25,7 +25,7 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 </parameters>
 </property>
 <property name='sc' type='%Library.Status' initialexpression='1' instantiate='0' />
-<property name='validationError' type='%String' instantiate='0' >
+<property name='validationMessage' type='%String' instantiate='0' >
 <parameters>
 <parameter name='MAXLEN'  value='' />
 </parameters>
@@ -114,24 +114,29 @@ Pull notifications must always be sent.]]></annotation>
  
  if validationCommand '= "" {
  
-     set validationCommand = "(req, res) set sc = 1 try { " _ validationCommand _ " } catch e { set sc = e.AsStatus() } quit sc"
+     set validationCommand = "(req, res, msg) set sc = 1 set msg = """" try { " _ validationCommand _ " } catch e { set sc = e.AsStatus() } quit sc"
 
-     set context.sc = $xecute(validationCommand, request, .res)
+     set context.sc = $xecute(validationCommand, request, .res, .msg)
 
      if context.sc = 1 {
          set context.hasToSendNotification = res
+         
+         if 'res {
+             set context.validationMessage = msg
+         }
      } else {
 
          set context.hasToSendNotification = 0
+
          set err = ""
-         do $system.Status.DecomposeStatus(context.sc,.err,"-d")
-         set context.validationError = err(1)
+         do $system.Status.DecomposeStatus(context.sc,.err, "-d")
+         set context.validationMessage = err(1)
      }
  } else {
      set context.sc = 1
  }]]>
 </code>
-<if name='Is Error' condition='context.sc &apos;= 1' xpos='335' ypos='950' xend='335' yend='2050' >
+<if name='Is Error' condition='$$$ISERR(context.sc)' xpos='335' ypos='950' xend='335' yend='2050' >
 <true>
 <assign name="Validation error" property="response.result" value="&quot;Topic validation error&quot;" action="set" xpos='335' ypos='1100' />
 <code name='Create Notification' xpos='335' ypos='1200' >
@@ -146,7 +151,7 @@ Pull notifications must always be sent.]]></annotation>
  set notification.Text = request.Text
  set notification.Date = $zdatetime($horolog, 3)   
  set notification.Result = "VALIDATION-ERROR"
- set notification.Error = "Topic validation error " _ context.validationError
+ set notification.Error = "Topic validation error: " _ context.validationMessage
 
  do notification.%Save(0)]]>
 </code>
@@ -309,7 +314,7 @@ Pull notifications must always be sent.]]></annotation>
  set notification.Text = request.Text
  set notification.Date = $zdatetime($horolog, 3)   
  set notification.Result = "VALIDATION-NOT-SENT"
- set notification.Error = "Topic validation not passed"
+ set notification.Error = "Topic validation not passed: " _ context.validationMessage
 
  do notification.%Save(0)]]>
 </code>
