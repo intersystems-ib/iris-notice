@@ -70,7 +70,8 @@ ClassMethod CreateBotTelegramIdParam() As %Status [ Internal, Private ]
 
 ClassMethod CreateMailSendingParams() As %Status [ Internal, Private ]
 {
-	set id = "MAIL_SERVER", description = "Mail Server|Port|User|Password", value = "mail.iscinternal.com|25|ilicense|Ib2!Li6?2020", type = "TEXT"
+    // You have to put valid data in the next parameter
+	set id = "MAIL_SERVER", description = "Mail Server|Port|User|Password", value = "SERVER|PORT|USER|PASSWORD", type = "TEXT"
 	$$$QuitOnError(..CreateParam(id, description, value, type))
 
 	set id = "MAIL_NOT_FROM", description = "Mail Notice From", value = "Iberia Notifications - BASE <iberia.notifications@intersystems.com>", type = "TEXT"
