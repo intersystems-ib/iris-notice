@@ -1,5 +1,5 @@
 /// Persistent class with real sessions with users
-Class IBSP.Notice.DAT.Session Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.Session Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// Subscriber executing the session

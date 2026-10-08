@@ -1,11 +1,5 @@
-Class IBSP.Notice.DAT.Lang Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.Lang Extends (%Persistent, RESTUtils.JSON.Adaptor, %XML.Adaptor)
 {
-
-Parameter FORMNAME = "Lang";
-
-Parameter DISPLAYPROPERTY = "Description";
-
-Parameter FORMORDERBY = "ISO";
 
 /// Code ISO639-1: Acronym of the Language (es = Spanish ; ca = Català ; pt = Português ; en = English)
 Property ISO As %String;

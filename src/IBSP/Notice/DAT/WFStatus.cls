@@ -1,5 +1,5 @@
 /// Persitent Class for Command Workflows
-Class IBSP.Notice.DAT.WFStatus Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.WFStatus Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// Descripting text representing this Status

@@ -1,5 +1,5 @@
 /// Persitent Class for possibles command available on a specific status
-Class IBSP.Notice.DAT.WFStatusCommand Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.WFStatusCommand Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// Status where this command can be executed

@@ -1,5 +1,5 @@
 /// Persistent Class for list of commands available in Telegram
-Class IBSP.Notice.DAT.TelegramCommand Extends (%Persistent, %JSON.Adaptor) [ Language = objectscript ]
+Class IBSP.Notice.DAT.TelegramCommand Extends (%Persistent, RESTUtils.JSON.Adaptor) [ Language = objectscript ]
 {
 
 Property ActionCommand As %String(MAXLEN = "") [ Required ];

@@ -1,7 +1,7 @@
 Class IBSP.Notice.Messages.NoticeRes Extends (Ens.Response, %JSON.Adaptor)
 {
 
-Property result;
+Property result As %String(MAXLEN = "");
 
 Storage Default
 {

@@ -9,7 +9,10 @@ Parameter INVOCATION = "Queue";
 
 Property Token As %String(MAXLEN = "");
 
-Parameter SETTINGS = "Token:Basic";
+Parameter SETTINGS = "Token:Basic,AuthMethod:Basic";
+
+/// Send authentication in header or body of message. Possible values: "HEADER", "BODY"
+Property AuthMethod As %String(DISPLAYLIST = ",Authentication in Header,Authentication in Body", MAXLEN = 50, VALUELIST = ",HEADER,BODY") [ InitialExpression = "BODY" ];
 
 Parameter AuthHeader = "Authorization";
 
@@ -64,8 +67,15 @@ Method BuildHttpRequest(request As IBSP.Notice.Request.RESTNoticeRequest, Output
 
 Method SetAuthentication(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
 {
-    $$$QuitOnError(..SetAuthorizationToken(.httpRequest))
-    return ..SetAuthorizationCredentials(.httpRequest)
+	if (..AuthMethod="HEADER") {	
+		$$$QuitOnError(..SetAuthorizationToken(.httpRequest))
+    	return ..SetAuthorizationCredentials(.httpRequest)
+	}
+	if (..AuthMethod="BODY") {	
+		$$$QuitOnError(..SetHeaders(.httpRequest))
+        return $$$OK
+	}
+    return $$$OK
 }
 
 Method SetAuthorizationToken(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
@@ -89,9 +99,23 @@ Method SetAuthorizationCredentials(Output httpRequest As %Net.HttpRequest) As %S
     return httpRequest.SetHeader(..#AuthHeader, basicAuth)
 }
 
+Method SetHeaders(Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
+{
+    do httpRequest.SetHeader("Accept", "application/json")
+    do httpRequest.SetHeader("Content-Type", "application/json")
+    set credentials = ##class(Ens.Config.Credentials).%OpenId(..Adapter.Credentials)
+    set apikey = credentials.PasswordGet()
+    set apiauth = "x-api-key " _ apikey
+    return httpRequest.SetHeader(..#AuthHeader, apiauth)
+}
+
 Method SetBody(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequest As %Net.HttpRequest) As %Status [ Internal, Private ]
 {
     set textJSON = {}.%FromJSON(request.Text)
+    if (..AuthMethod="BODY") {	
+    	set credentials = ##class(Ens.Config.Credentials).%OpenId(..Adapter.Credentials)
+    	set textJSON.user = credentials.Username
+    }
     set text = textJSON.%ToJSON()
 
     return httpRequest.EntityBody.Write(text)
@@ -100,9 +124,9 @@ Method SetBody(request As IBSP.Notice.Request.RESTNoticeRequest, Output httpRequ
 XData MessageMap
 {
 <MapItems>
-	<MapItem MessageType="IBSP.Notice.Request.RESTNoticeRequest"> 
-		<Method>SendMessage</Method>
-	</MapItem>
+<MapItem MessageType="IBSP.Notice.Request.RESTNoticeRequest"> 
+<Method>SendMessage</Method>
+</MapItem>
 </MapItems>
 }
 

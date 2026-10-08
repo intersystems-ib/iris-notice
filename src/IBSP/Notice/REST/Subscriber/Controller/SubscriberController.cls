@@ -49,9 +49,10 @@ ClassMethod GetSubscriber() As %Status
 ClassMethod DeleteSubscriber() As %Status
 {
     set cip = %request.Get($$$CIP)
-    return:('..IsValidCIP(cip)) ..ReturnHttpBadRequest()
+    set applicationid = %request.Get($$$ApplicationId)
+    return:('..IsValidCIP(cip) && (applicationid = "")) ..ReturnHttpBadRequest()
 
-    set response = ##class(IBSP.Notice.REST.Subscriber.Service.SubscriberService).DeleteSubscriber(cip)
+    set response = ##class(IBSP.Notice.REST.Subscriber.Service.SubscriberService).DeleteSubscriber(cip, applicationid)
     do ##class(IBSP.Notice.REST.Subscriber.Service.SubscriberService).%WriteResponse(response)
 
     return $$$OK

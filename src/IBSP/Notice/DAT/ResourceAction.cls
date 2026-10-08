@@ -1,4 +1,4 @@
-Class IBSP.Notice.DAT.ResourceAction Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.ResourceAction Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 Property Resource As %String(MAXLEN = "") [ Required ];
@@ -6,6 +6,8 @@ Property Resource As %String(MAXLEN = "") [ Required ];
 Property Action As %String(MAXLEN = "") [ Required ];
 
 Property Description As %String(MAXLEN = "") [ Required ];
+
+Property SendIfPublished As %String(VALUELIST = ",Y,N") [ InitialExpression = "Y", Required ];
 
 Index UIResourceAction On (Resource, Action) [ Unique ];
 
@@ -23,6 +25,9 @@ Storage Default
 </Value>
 <Value name="4">
 <Value>Description</Value>
+</Value>
+<Value name="5">
+<Value>SendIfPublished</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice419.ResourceActionD</DataLocation>

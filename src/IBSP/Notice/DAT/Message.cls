@@ -1,4 +1,4 @@
-Class IBSP.Notice.DAT.Message Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.Message Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// ID of this message. Every MsgID can have several laguages.

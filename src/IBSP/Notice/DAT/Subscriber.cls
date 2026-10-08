@@ -1,12 +1,6 @@
 /// Persitent Class for subscribers. Users or Groups.
-Class IBSP.Notice.DAT.Subscriber Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.Subscriber Extends (%Persistent, RESTUtils.JSON.Adaptor, %XML.Adaptor)
 {
-
-Parameter FORMNAME = "Subscriber";
-
-Parameter DISPLAYPROPERTY = "Name";
-
-Parameter FORMORDERBY = "Name";
 
 /// Name of user / Name of the Group
 Property Name As %String(MAXLEN = "");
@@ -18,22 +12,11 @@ Property SurName As %String(MAXLEN = "");
 Property Active As %Boolean [ InitialExpression = 1 ];
 
 /// Preferred language of the user to send the notifications
-Property Lang As IBSP.Notice.DAT.Lang(%JSONREFERENCE = "ID");
+Property Lang As IBSP.Notice.DAT.Lang;
 
 ForeignKey FKLang(Lang) References IBSP.Notice.DAT.Lang() [ SqlName = FK_Message_Lang ];
 
-/// Necessary for RESTForms2. This query is called when the "list" URL is invoked
-ClassMethod queryLIST() As %String
-{
-    quit "%id _id, " _
-         "Name, " _
-         "SurName, " _
-         "(select u.Code from IBSP_Notice_DAT.UserID u where u.Subscriber = t.%id and u.Type = 'employeeid') EmployeeId, " _
-         "(select c.Address from IBSP_Notice_DAT.ContactWay c where c.Subscriber = t.%id AND c.Type = 'email') Email, " _
-         "(select count(*) from IBSP_Notice_DAT.Subscription s where s.Subscriber = t.%id) NumSubscriptions, " _
-         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PULL') PullNotifications, " _
-         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Subscriber = t.%id and n.NotificationType = 'PUSH') PushNotifications "
-}
+Index BXActive On Active [ Type = bitmap ];
 
 Storage Default
 {

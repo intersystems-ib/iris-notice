@@ -1,15 +1,9 @@
 /// Persitent Class for list of IDs of a Subscriber
-Class IBSP.Notice.DAT.UserID Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.UserID Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
-Parameter FORMNAME = "UserID";
-
-Parameter DISPLAYPROPERTY = "Type";
-
-Parameter FORMORDERBY = "Type";
-
 /// Subscriber
-Property Subscriber As IBSP.Notice.DAT.Subscriber(%JSONREFERENCE = "ID");
+Property Subscriber As IBSP.Notice.DAT.Subscriber;
 
 /// Type of UserId
 Property Type As %String;
@@ -18,6 +12,10 @@ Property Type As %String;
 Property Code As %String;
 
 ForeignKey FKSubscriber(Subscriber) References IBSP.Notice.DAT.Subscriber() [ SqlName = FK_UserID_Subcriber ];
+
+Index IXSubscriber On Subscriber;
+
+Index IXSubscriberType On (Subscriber, Type);
 
 /// Necessary for RESTForms2. This query is called when the "list" URL is invoked
 ClassMethod queryLIST() As %String

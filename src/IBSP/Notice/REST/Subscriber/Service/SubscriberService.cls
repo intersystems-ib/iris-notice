@@ -88,7 +88,7 @@ ClassMethod GetSubscriber(cip As %String, applicationid As %String) As %DynamicO
     return {}.%FromJSON(responseString)
 }
 
-ClassMethod DeleteSubscriber(cip As %String) As %DynamicObject
+ClassMethod DeleteSubscriber(cip As %String, applicationid As %String) As %DynamicObject
 {
     set executionResponse = ##class(IBSP.Notice.REST.Subscriber.Response.ExecutionResponse).%New()
 
@@ -96,7 +96,11 @@ ClassMethod DeleteSubscriber(cip As %String) As %DynamicObject
 
         TSTART
 
-        $$$ThrowOnError(..GetSubscriberByCip(cip, .subscriber))
+        if cip '= "" {
+            $$$ThrowOnError(..GetSubscriberByCip(cip, .subscriber))
+        } else {
+            $$$ThrowOnError(..GetSubscriberByApplicationId(applicationid, .subscriber))
+        }
         $$$ThrowOnError(..DeleteSubscriberApplicationId(subscriber))
         $$$ThrowOnError(..DeleteSubscriberCip(subscriber))
         $$$ThrowOnError(..DeleteSubscriberSubscriptions(subscriber))

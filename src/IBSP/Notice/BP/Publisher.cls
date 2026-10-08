@@ -57,11 +57,16 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
  
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByUserId(request.UserIdType, request.UserIdCode, .subscriber))
          if subscriber = "" {
-	     $$$ThrowStatus($$$ERROR($$$GeneralError, "Subscriber with "_request.UserIdType_ " "_ request.UserIdCode_ " does not exist."))
-	 }
+             $$$ThrowStatus($$$ERROR($$$GeneralError, "Subscriber with "_request.UserIdType_ " "_ request.UserIdCode_ " does not exist."))
+         }
  
-	 do context.subscribers.Insert(subscriber)
+         do context.subscribers.Insert(subscriber)
+     } elseif (topic.SendsAlert && (topic.SendAlertFieldName '= "")) {
  
+         set params = {}.%FromJSON(request.TextParams)
+         set alertDate = params.%Get(topic.SendAlertFieldName)
+         $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByAlertTopic(topic.TopicKey, alertDate, .subscribers))
+	     set context.subscribers = subscribers
      } else {
  
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByTopic(topic.TopicKey, .subscribers))

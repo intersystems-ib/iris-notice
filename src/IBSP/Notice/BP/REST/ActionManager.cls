@@ -8,7 +8,6 @@ Storage Default
 }
 
 /// BPL Definition
-/// BPL Definition
 XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 {
 <process language='objectscript' request='IBSP.Notice.Request.PushNoticeRequest' response='Ens.StringResponse' height='2000' width='2000' >
@@ -101,6 +100,9 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
          set contactWayAddress = contactWayAddresses.GetAt(j)
 
          $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+         
+         // In direct sendings, the subscriber has no contact way address it's specified as ##ContactWayType## (e.g. ##sms##) and the correct value is received as a param in the request
+         set:(contactWayAddress = ("##" _ contactWayType _ "##")) contactWayAddress = ##class(IBSP.Notice.Utils).ReplaceMessageTags(contactWayAddress, $$$YES, .params)
          set params(contactWayType) = contactWayAddress
 
          if topic.TemplateMsg '= "" {
@@ -111,11 +113,12 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
              $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
          }
 
-         set pushRequest = request
+         set pushRequest = request.%ConstructClone()
          set pushRequest.Topic = topic
          set pushRequest.Text = text
          set pushRequest.ContactWayAddress = contactWayAddress
          set pushRequest.Subscriber = subscriber
+         set pushRequest.SendIfPublished = context.resourceAction.SendIfPublished
          $$$ThrowOnError(process.SendRequestSync("IBSP.Notice.BP.Publisher", pushRequest, .resp))
          
          set response.StringValue = resp.result
@@ -126,17 +129,17 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 </foreach>
 </true>
 <false>
-<assign name="No Topic error" property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Action" action="set" xpos='740' ypos='1000' />
+<assign name="No Topic error" property="response.StringValue" value="&quot;There's no topic for the ResourceAction &quot; _ request.Action" action="set" languageOverride="" xpos='740' ypos='1000' />
 </false>
 </if>
 </true>
 <false>
-<assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Action" action="set" xpos='470' ypos='750' />
+<assign name="No ResourceAction error" property="response.StringValue" value="&quot;There's no action for &quot; _ request.Action" action="set" languageOverride="" xpos='470' ypos='750' />
 </false>
 </if>
 </true>
 <false>
-<assign name="No Subscriber error" property="response.StringValue" value="&quot;There's no subscriber for &quot;  _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" xpos='200' ypos='500' />
+<assign name="No Subscriber error" property="response.StringValue" value="&quot;There's no subscriber for &quot;  _ request.UserIdType _ &quot; &quot; _ request.UserIdCode" action="set" languageOverride="" xpos='200' ypos='500' />
 </false>
 </if>
 </sequence>

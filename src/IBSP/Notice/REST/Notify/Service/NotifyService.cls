@@ -14,7 +14,7 @@ ClassMethod Notify(request As IBSP.Notice.REST.Notify.Request.NotifyRequest) As 
     set pushRequest.UserIdType = request.userIdType
     set pushRequest.UserIdCode = request.userIdCode
     set pushRequest.TextParams = request.data
-    set pushRequest.SendIfPublished = "Y"
+    set pushRequest.Element = request.element
 
     do ##class(Ens.Director).CreateBusinessService(..#APIBS, .service)
 

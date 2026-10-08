@@ -1,4 +1,4 @@
-Class IBSP.Notice.DAT.ResourceActionTopics Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.ResourceActionTopics Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 Property ResourceAction As IBSP.Notice.DAT.ResourceAction;

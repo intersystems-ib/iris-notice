@@ -1,4 +1,4 @@
-Class IBSP.Notice.DAT.Params Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.Params Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 // Parameter ID

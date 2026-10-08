@@ -47,6 +47,40 @@ ClassMethod GetByTopic(topicKey As %String, Output subscribers As %ListOfObjects
     return sc
 }
 
+ClassMethod GetByAlertTopic(topicKey As %String, alertDate As %Date, Output subscribers As %ListOfObjects) As %Status
+{
+    set tSC = $$$OK
+    set subscribers = ##class(%ListOfObjects).%New()
+
+    try {
+
+        set alertDay = $zdateh(alertDate, 3)
+        set currentDay = $piece($h, ",", 1)
+        set daysRemaining = alertDay - currentDay
+        set alert = daysRemaining _ "d"
+
+        set select = "SELECT Subscriber "
+        set from = "FROM IBSP_Notice_DAT.Subscription "
+        set where = "WHERE (Topic = ? "
+                  _ "    OR (CHARINDEX('*', Topic) > 0 "
+                  _ "        AND ? %STARTSWITH SUBSTR(Topic, 1, CHARINDEX('*', Topic) -2))) "
+                  _ "AND $LISTFIND(Alerts, ?) > 0"
+        set query = select _ from _ where
+
+        set result = ##class(%SQL.Statement).%ExecDirect(, query, topicKey, topicKey, alert)
+        while result.%Next() {
+
+            set subscriberId = result.%Get("Subscriber")
+            set subscriber = ##class(IBSP.Notice.DAT.Subscriber).%OpenId(subscriberId)
+            do:(subscriber.Active) subscribers.Insert(subscriber)
+        }
+    } catch ex {
+        set tSC = ex.AsStatus()
+    }
+
+    quit tSC
+}
+
 ClassMethod ExistsByUserId(userIdType As %String, userIdCode As %String) As %Boolean
 {
     try {

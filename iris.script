@@ -28,6 +28,9 @@
     set sc = ##class(IBSP.Notice.Installer).RunWithParams(.vars)
     
     zn "NOTICE"
+    // install ipm
+    set version="latest" s r=##class(%Net.HttpRequest).%New(),r.Server="pm.community.intersystems.com",r.SSLConfiguration="ISC.FeatureTracker.SSL.Config" d r.Get("/packages/zpm/"_version_"/installer"),$system.OBJ.LoadStream(r.HttpResponse.Data,"c")
+    zpm "enable -community"
     // install RestForms2
     zpm "install restforms2"
     // install WebTerminal

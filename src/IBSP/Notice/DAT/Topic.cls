@@ -1,12 +1,6 @@
 /// Persitent Class to save Topics of the messages.
-Class IBSP.Notice.DAT.Topic Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.Topic Extends (%Persistent, RESTUtils.JSON.Adaptor, %XML.Adaptor)
 {
-
-Parameter FORMNAME = "Topic";
-
-Parameter DISPLAYPROPERTY = "TopicKey";
-
-Parameter FORMORDERBY = "TopicKey";
 
 /// Key of the Topic. Format XXXX.XXXX.XXXX 
 Property TopicKey As %String(MAXLEN = "");
@@ -40,15 +34,27 @@ Property Subject As %String(MAXLEN = "");
 /// Subject MsgID for multi language
 Property SubjectMsg As %String;
 
+/// Adapter type used to send the notification: HTTP, sms, telegram, email
 Property OutboundAdapter As %String;
 
+/// If the OutboundAdapter is HTTP or sms, specify the format of the body to send: JSON, XML
 Property BodyFormat As %String;
 
+/// If the OutboundAdapter is HTTP or sms, specify the template of the body to send
 Property BodyTemplate As %String(MAXLEN = "");
 
 Property ExecutionComponent As %String(MAXLEN = "");
 
+/// Valid ObjectScript command to validate data before generating the notification.
+/// It can use the request object as "res". This validation command must return a boolean in property "res" indicating whether the data is valid or not. In "msg" property it can return a message in case of error.
+/// Example: set sc = ##class(Validations).ValidateData(req, .res, .msg)
 Property ValidationCommand As %String(MAXLEN = "");
+
+/// Indicates whether this topic has to send alerts to the subscriber. Each subscriber decides when he/she wants to receive the alert.
+Property SendsAlert As %Boolean [ InitialExpression = 0 ];
+
+/// It is only taken into account when SendsAlert is true. It is the name of the field that contains the date to be compared with the current date to determine whether the alert should be generated or not.
+Property SendAlertFieldName As %String(MAXLEN = "");
 
 Index UITopicKey On TopicKey [ Unique ];
 
@@ -66,24 +72,6 @@ Method IsHtmlFormat() As %Boolean
 Method IsHttpOutboundAdapter() As %Boolean
 {
     quit ..#HTTPOUTBOUNDADAPTER = ..OutboundAdapter
-}
-
-/// Necessary for RESTForms2. This query is called when the "list" URL is invoked
-ClassMethod queryLIST() As %String
-{
-    quit "%id _id, " _
-         "TopicKey, " _
-         "ContactWay, " _
-         "Format, " _
-         "Destination, " _
-         "BotName, " _
-         "Template, " _
-         "(select count(*) from IBSP_Notice_DAT.Notification n where n.Topic = t.%id) Notifications "
-}
-
-ClassMethod queryLISTTOPICKEYS() As %String
-{
-	return "TopicKey"
 }
 
 Storage Default
@@ -136,6 +124,12 @@ Storage Default
 </Value>
 <Value name="16">
 <Value>ValidationCommand</Value>
+</Value>
+<Value name="17">
+<Value>SendsAlert</Value>
+</Value>
+<Value name="18">
+<Value>SendAlertFieldName</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.TopicD</DataLocation>

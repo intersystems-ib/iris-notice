@@ -9,6 +9,8 @@ Property userIdType As %String(MAXLEN = "");
 
 Property userIdCode As %String(MAXLEN = "");
 
+Property element As %String(MAXLEN = "");
+
 /// Necessary data (in JSON format) to build the notification
 Property data As %String(MAXLEN = "");
 
@@ -32,6 +34,9 @@ Storage Default
 </Value>
 <Value name="6">
 <Value>data</Value>
+</Value>
+<Value name="7">
+<Value>element</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice651D.NotifyRequestD</DataLocation>

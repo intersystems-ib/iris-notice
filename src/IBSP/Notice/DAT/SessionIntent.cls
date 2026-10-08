@@ -1,5 +1,5 @@
 /// Persistent class with intents in a session
-Class IBSP.Notice.DAT.SessionIntent Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.SessionIntent Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// Session

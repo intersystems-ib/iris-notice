@@ -240,7 +240,7 @@ ClassMethod GetTopicBody(topic As IBSP.Notice.DAT.Topic, ByRef params, Output te
 }
 
 /// Replaces the tags in the message with the inpunt params ARRAY
-ClassMethod ReplaceMessageTags(message As %String, formatText As %Boolean = 0, ByRef params) As %String
+ClassMethod ReplaceMessageTags(message As %String, formattedText As %Boolean = 0, ByRef params) As %String
 {
 	set text = $replace(message, "##ENTER##", $char(10))
 
@@ -258,7 +258,7 @@ ClassMethod ReplaceMessageTags(message As %String, formatText As %Boolean = 0, B
 	
 	set text = ..RemoveNotFilledConditions(text)
 	set text = ..RemoveNotUsedTags(text)
-	set:('formatText) text = ..FormatText(text)
+	set:('formattedText) text = ..FormatText(text)
 
 	quit text
 }
@@ -285,6 +285,7 @@ ClassMethod FormatText(text As %String) As %String
 	set text = $replace(text, "}", "\})")
 	set text = $replace(text, ".", "\.")
 	set text = $replace(text, "!", "\!")
+	set text = $replace(text, "_", "\_")
 	quit text
 }
 

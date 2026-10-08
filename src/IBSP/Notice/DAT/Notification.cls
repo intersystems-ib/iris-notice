@@ -1,11 +1,5 @@
-Class IBSP.Notice.DAT.Notification Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.Notification Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
-
-Parameter FORMNAME = "Notification";
-
-Parameter DISPLAYPROPERTY = "NotificationType";
-
-Parameter FORMORDERBY = "NotificationType";
 
 /// Topic notified
 Property Topic As IBSP.Notice.DAT.Topic;

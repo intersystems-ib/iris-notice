@@ -1,5 +1,5 @@
 /// Persitent Class for Command Workflows
-Class IBSP.Notice.DAT.Workflow Extends (%Persistent, %JSON.Adaptor)
+Class IBSP.Notice.DAT.Workflow Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
 /// Main Command to execute this WF

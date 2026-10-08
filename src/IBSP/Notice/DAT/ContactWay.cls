@@ -1,15 +1,9 @@
 /// Persitent Class to save different contact ways for subcribers.
-Class IBSP.Notice.DAT.ContactWay Extends (%Persistent, Form.Adaptor)
+Class IBSP.Notice.DAT.ContactWay Extends (%Persistent, RESTUtils.JSON.Adaptor)
 {
 
-Parameter FORMNAME = "ContactWay";
-
-Parameter DISPLAYPROPERTY = "Type";
-
-Parameter FORMORDERBY = "Type";
-
 /// Subscriber
-Property Subscriber As IBSP.Notice.DAT.Subscriber(%JSONREFERENCE = "ID");
+Property Subscriber As IBSP.Notice.DAT.Subscriber;
 
 /// Type of way to contact
 Property Type As %String(MAXLEN = "");
@@ -18,6 +12,10 @@ Property Type As %String(MAXLEN = "");
 Property Address As %String(MAXLEN = "");
 
 ForeignKey FKSubscriber(Subscriber) References IBSP.Notice.DAT.Subscriber() [ SqlName = FK_Contactway_Subcriber ];
+
+Index IXSubscriber On Subscriber;
+
+Index IXSubscriberType On (Subscriber, Type);
 
 /// Necessary for RESTForms2. This query is called when the "list" URL is invoked
 ClassMethod queryLIST() As %String
