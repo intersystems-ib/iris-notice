@@ -44,6 +44,20 @@ ClassMethod ExtractParametersFromCommand(command As %String) As %String
 	Quit $piece(command, " ", 2, *)
 }
 
+ClassMethod ExtractParametersFromCommandNew(command As %String) As %String
+{
+    set paramsJson = {}
+	set params = $piece(command, " ", 2, *)
+
+    for i = 1: 1: $length(params, " ") {
+
+        set param = $piece(params, " ", i)
+        do paramsJson.%Set("param "_ i, param)
+    }
+
+    quit paramsJson.%ToJSON()
+}
+
 /// Gets the token for a topic
 ClassMethod GetTopicToken(topic As IBSP.Notice.DAT.Topic, Output token As %String) As %Status
 {
@@ -387,6 +401,87 @@ ClassMethod IsUserApproved(userId As %String, commandName As %String) As %Boolea
 {
 	//TODO in JIRA https://jira.intersystems.co.uk/browse/IBINT-100
 	quit $$$YES
+}
+
+ClassMethod GetTopicTextNew(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, params As %DynamicObject = {{}}, Output text As %String) As %Status
+{
+	set tSC = $$$OK
+
+	try {
+
+		set text = ""
+		return:('$isobject(topic)) tSC
+
+		set message = ..GetTopicMessage(topic, lang)
+		set text = ..ReplaceMessageTagsWithJsonParams(message, topic.IsHtmlFormat(), params)
+	} catch ex {
+		set tSC = $$$OK
+	}
+
+	quit tSC
+}
+
+ClassMethod GetTopicBodyNew(topic As IBSP.Notice.DAT.Topic, params As %DynamicObject = {{}}, Output text As %String) As %Status
+{
+	set tSC = $$$OK
+
+	try {
+
+		set text = ""
+		return:('$isobject(topic)) tSC
+
+		set bodyTemplate = topic.BodyTemplate
+		set text = ..ReplaceMessageTagsWithJsonParams(bodyTemplate, $$$YES, params)
+	} catch ex {
+		set tSC = $$$OK
+	}
+
+	quit tSC
+}
+
+ClassMethod ReplaceMessageTagsWithJsonParams(message As %String, formattedText As %Boolean = 0, params As %DynamicObject = {{}}) As %String
+{
+	set text = $replace(message, "##ENTER##", $char(10))
+
+	set:('params.%IsDefined("HORA")) text = $replace(text, "##TIME##", $ztime($p($h, ",", 2), 2)) //i.e "19:12"
+	set:('params.%IsDefined("FECHA")) text = $replace(text, "##DATE##", $zdate($h, 2)) //i.e "18 Jun 2020"
+	set:('params.%IsDefined("FECHAHORA")) text = $replace(text, "##DATETIME##", $zdatetime($h, 2, 2)) //i.e "18 Jun 2020 19:12"
+		
+    set iter = params.%GetIterator()
+    while iter.%GetNext(.key , .value, .type) {
+
+        if (type = "array") {
+
+            set repeatingTextStart = $find(text, "{{" _ key _ "}}")
+            set repeatingTextEnd = $find(text, "{{/" _ key _ "}}")
+            continue:((repeatingTextStart = 0) || (repeatingTextEnd = 0))
+
+            set repeatingTextEndPos = repeatingTextEnd - $length(key) - 6
+            set repeatingText = $extract(text, repeatingTextStart, repeatingTextEndPos)
+
+            set beforArrayEndPos = repeatingTextStart - $length(key) - 5
+            set textBeforeArray = $extract(text, 1, beforArrayEndPos)
+            set textAfterArray = $extract(text, repeatingTextEnd, *)
+
+            set text = textBeforeArray
+
+            set arrayIter = value.%GetIterator()
+            while arrayIter.%GetNext(.keyArray, .valueArray) {
+                set arrayText = ..ReplaceMessageTagsWithJsonParams(repeatingText, formattedText, valueArray)
+                set text = text _ arrayText
+            }
+
+            set text = text _ textAfterArray
+        } else {
+            set text = $replace(text, "##" _ key _ "##", value)
+        }
+    }
+	
+	set text = ..RemoveNotFilledConditions(text)
+	set text = ..RemoveNotUsedTags(text)
+	set:('formattedText) text = ..FormatText(text)
+
+	quit text
 }
 
 }

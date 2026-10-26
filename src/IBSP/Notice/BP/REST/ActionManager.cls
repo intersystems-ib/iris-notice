@@ -99,18 +99,19 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
      
          set contactWayAddress = contactWayAddresses.GetAt(j)
 
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+         set paramsJson = {}.%FromJSON(request.TextParams)
          
          // In direct sendings, the subscriber has no contact way address it's specified as ##ContactWayType## (e.g. ##sms##) and the correct value is received as a param in the request
-         set:(contactWayAddress = ("##" _ contactWayType _ "##")) contactWayAddress = ##class(IBSP.Notice.Utils).ReplaceMessageTags(contactWayAddress, $$$YES, .params)
-         set params(contactWayType) = contactWayAddress
+         set:(contactWayAddress = ("##" _ contactWayType _ "##")) contactWayAddress = ##class(IBSP.Notice.Utils).ReplaceMessageTagsWithJsonParams(contactWayAddress, $$$YES, paramsJson)
+         set paramsJson = paramsJson.%Set(contactWayType, contactWayAddress)
+
 
          if topic.TemplateMsg '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, subscriber.Lang, .params, .text))
-             set params("msg") = text
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, subscriber.Lang, paramsJson, .text))
+             set paramsJson.msg = text
          }
          if topic.BodyTemplate '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, .params, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBodyNew(topic, paramsJson, .text))
          }
 
          set pushRequest = request.%ConstructClone()

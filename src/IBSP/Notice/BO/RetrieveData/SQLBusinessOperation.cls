@@ -42,13 +42,17 @@ Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.P
 			}
 		
 		}
+
+        set params = {}
+
 		// Execute query with single values
 		if ..Query '= "" { 
 			$$$ThrowOnError(..ExecuteQuery(.tResult, queryToExecute))
 			$$$ThrowOnError(tResult.%Next()) // just checks first record
 			for i=1:1:tResult.GetColumnCount() // loop over columns
 			{
-				set values(tResult.GetColumnName(i)) = tResult.GetData(i)
+                set columnName = $zcvt(tResult.GetColumnName(i), "l")
+                set params = params.%Set(columnName, tResult.GetData(i))
 			}
 			set tResult = ""
 		}
@@ -56,27 +60,29 @@ Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.P
 		// Execute query with multiple rows
 		if ..QueryROWS '= "" { 
 			$$$ThrowOnError(..ExecuteQuery(.tResult, queryRowsToExecute))
+            set params.rows = []
 			while tResult.%Next() // loop over records
 			{
+                set row = {}
 				for i=1:1:tResult.GetColumnCount() // loop over columns
 				{
-					set values(i_":"_tResult.GetColumnName(i)) = $g(values(i_":"_tResult.GetColumnName(i))) _ $case($g(values(i_":"_tResult.GetColumnName(i)))="", 1:"",:"|") _ tResult.GetData(i)
+                    set columnName = $zcvt(tResult.GetColumnName(i), "l")
+                    set row = row.%Set(columnName, tResult.GetData(i))
 				}
+                do params.rows.%Push(row)
 			}
-			set values("ROWS") = ""
-			do ..AddROWS(.values)
 		}
 
 		set language = pRequest.Subscriber.Lang
 		
-		$$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(pRequest.Topic, language, .values, .text))
+        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(pRequest.Topic, language, params, .text))
 
 		if ($length(text) > ..#RESPONSETEXTMAXLENGTH) {
 
 			set topicKey = ..#TopicErrorResponseTooLong
 			set pResponse.Topic = topicKey
 			set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-			$$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
+            $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, language, , .text))
 		}
 		
 		set pResponse.Text = text
@@ -90,7 +96,7 @@ Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.P
 		set pResponse.Topic = topicKey
 		set language = pRequest.Subscriber.Lang
 		set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-		$$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
+        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, language, , .text))
 		set pResponse.Text = text
 	}
 	Quit tSC

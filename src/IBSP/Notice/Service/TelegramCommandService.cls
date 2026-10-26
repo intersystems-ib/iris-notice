@@ -18,8 +18,9 @@ ClassMethod CreateNoticeRequestError(Output noticeRequest As IBSP.Notice.Request
 {
 	set topicKey = ..#TopicErrorComand
 	set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-	set values("COMMAND") = ##class(IBSP.Notice.Utils).FormatCommandText(noticeRequest.Command)
-	$$$QuitOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, noticeRequest.Subscriber.Lang, .values, .text))
+    set params = {}
+    set params.COMMAND = ##class(IBSP.Notice.Utils).FormatCommandText(noticeRequest.Command)
+    $$$QuitOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, noticeRequest.Subscriber.Lang, params, .text))
 
 	set noticeRequest.Topic = topic
 	set noticeRequest.DataTarget = ""
@@ -42,8 +43,9 @@ ClassMethod CreateNoticeRequestNotAuth(command As IBSP.Notice.DAT.TelegramComman
 	set topicKey = ..#TopicErrorUnauthorized
 	set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
 	set actionCommand = command.ActionCommand
-	set values("COMMAND") = ##class(IBSP.Notice.Utils).FormatCommandText(actionCommand)
-	$$$QuitOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, noticeRequest.Subscriber.Lang, .values, .text))
+    set params = {}
+	set params.COMMAND = ##class(IBSP.Notice.Utils).FormatCommandText(actionCommand)
+	$$$QuitOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, noticeRequest.Subscriber.Lang, params, .text))
 	
 	set noticeRequest.Topic = topic
 	set noticeRequest.Command = actionCommand

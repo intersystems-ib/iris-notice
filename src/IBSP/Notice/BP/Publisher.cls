@@ -171,7 +171,7 @@ Pull notifications must always be sent.]]></annotation>
 Pull notifications must always be sent.]]></annotation>
 <![CDATA[ if request.Text = "" {
  
-     $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTextParamsAsArray(request.TextParams, .params))
+     set paramsJson = {}.%FromJSON(request.TextParams)
  
      if $zconvert(context.outboundAdapter, "L") = "http" {
  
@@ -186,18 +186,18 @@ Pull notifications must always be sent.]]></annotation>
              set request.ContactWayAddress = contactWayAddress
          }
      
-         set params(contactWayType) = contactWayAddress
+         set paramsJson = paramsJson.%Set(contactWayType, contactWayAddress)
 
          if request.Topic.TemplateMsg '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
-             set params("msg") = text
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(request.Topic, request.Subscriber.Lang, paramsJson, .text))
+             set paramsJson.msg = text
          }
          if request.Topic.BodyTemplate '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(request.Topic, .params, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBodyNew(request.Topic, paramsJson, .text))
          }
             
      } else {
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, .params, .text))
+         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(request.Topic, request.Subscriber.Lang, paramsJson, .text))
      }
      set request.Text = text
  }]]>
