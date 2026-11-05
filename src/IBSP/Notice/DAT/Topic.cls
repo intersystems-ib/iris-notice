@@ -15,7 +15,10 @@ Property TemplateMsg As %String;
 Property BotName As %String(MAXLEN = "");
 
 /// Contact way for this topic
-Property ContactWay As %String(MAXLEN = "");
+Property ContactWay As IBSP.Notice.DAT.ContactWayType;
+
+/// Temporal
+Property ContactWayStr As %String(MAXLEN = "");
 
 /// Format of the Notification (HTML / TXT)
 Property Format As %String(MAXLEN = "");
@@ -56,6 +59,8 @@ Property SendsAlert As %Boolean [ InitialExpression = 0 ];
 /// It is only taken into account when SendsAlert is true. It is the name of the field that contains the date to be compared with the current date to determine whether the alert should be generated or not.
 Property SendAlertFieldName As %String(MAXLEN = "");
 
+ForeignKey FKContactWayType(ContactWay) References IBSP.Notice.DAT.ContactWayType() [ SqlName = FK_Topic_ContactWayType ];
+
 Index UITopicKey On TopicKey [ Unique ];
 
 /// Indicates the HTML Topic format
@@ -93,7 +98,7 @@ Storage Default
 <Value>BotName</Value>
 </Value>
 <Value name="6">
-<Value>ContactWay</Value>
+<Value>ContactWayStr</Value>
 </Value>
 <Value name="7">
 <Value>Format</Value>
@@ -130,6 +135,9 @@ Storage Default
 </Value>
 <Value name="18">
 <Value>SendAlertFieldName</Value>
+</Value>
+<Value name="19">
+<Value>ContactWay</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.TopicD</DataLocation>

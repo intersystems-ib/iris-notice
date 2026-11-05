@@ -6,10 +6,13 @@ Class IBSP.Notice.DAT.UserID Extends (%Persistent, RESTUtils.JSON.Adaptor)
 Property Subscriber As IBSP.Notice.DAT.Subscriber;
 
 /// Type of UserId
-Property Type As %String;
+Property Type As IBSP.Notice.DAT.UserIDType;
+
+/// Temporal
+Property TypeStr As %String(MAXLEN = "");
 
 /// Code of User
-Property Code As %String;
+Property Code As %String(MAXLEN = "");
 
 ForeignKey FKSubscriber(Subscriber) References IBSP.Notice.DAT.Subscriber() [ SqlName = FK_UserID_Subcriber ];
 
@@ -35,10 +38,13 @@ Storage Default
 <Value>Subscriber</Value>
 </Value>
 <Value name="3">
-<Value>Type</Value>
+<Value>TypeStr</Value>
 </Value>
 <Value name="4">
 <Value>Code</Value>
+</Value>
+<Value name="5">
+<Value>Type</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.UserIDD</DataLocation>

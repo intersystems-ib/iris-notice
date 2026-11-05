@@ -6,12 +6,17 @@ Class IBSP.Notice.DAT.ContactWay Extends (%Persistent, RESTUtils.JSON.Adaptor)
 Property Subscriber As IBSP.Notice.DAT.Subscriber;
 
 /// Type of way to contact
-Property Type As %String(MAXLEN = "");
+Property Type As IBSP.Notice.DAT.ContactWayType;
+
+/// Temporal
+Property TypeStr As %String(MAXLEN = "");
 
 /// Address of way to contact
 Property Address As %String(MAXLEN = "");
 
 ForeignKey FKSubscriber(Subscriber) References IBSP.Notice.DAT.Subscriber() [ SqlName = FK_Contactway_Subcriber ];
+
+ForeignKey FKType(Type) References IBSP.Notice.DAT.ContactWayType() [ SqlName = FK_Contactway_Type ];
 
 Index IXSubscriber On Subscriber;
 
@@ -35,10 +40,13 @@ Storage Default
 <Value>Subscriber</Value>
 </Value>
 <Value name="3">
-<Value>Type</Value>
+<Value>TypeStr</Value>
 </Value>
 <Value name="4">
 <Value>Address</Value>
+</Value>
+<Value name="5">
+<Value>Type</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.ContactWayD</DataLocation>
