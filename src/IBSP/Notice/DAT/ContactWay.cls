@@ -8,9 +8,6 @@ Property Subscriber As IBSP.Notice.DAT.Subscriber;
 /// Type of way to contact
 Property Type As IBSP.Notice.DAT.ContactWayType;
 
-/// Temporal
-Property TypeStr As %String(MAXLEN = "");
-
 /// Address of way to contact
 Property Address As %String(MAXLEN = "");
 
@@ -22,14 +19,6 @@ Index IXSubscriber On Subscriber;
 
 Index IXSubscriberType On (Subscriber, Type);
 
-/// Necessary for RESTForms2. This query is called when the "list" URL is invoked
-ClassMethod queryLIST() As %String
-{
-    quit "%id _id, " _
-         "Type, " _
-         "Address "
-}
-
 Storage Default
 {
 <Data name="ContactWayDefaultData">
@@ -40,13 +29,10 @@ Storage Default
 <Value>Subscriber</Value>
 </Value>
 <Value name="3">
-<Value>TypeStr</Value>
+<Value>Type</Value>
 </Value>
 <Value name="4">
 <Value>Address</Value>
-</Value>
-<Value name="5">
-<Value>Type</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.ContactWayD</DataLocation>

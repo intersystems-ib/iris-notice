@@ -8,9 +8,6 @@ Property Subscriber As IBSP.Notice.DAT.Subscriber;
 /// Type of UserId
 Property Type As IBSP.Notice.DAT.UserIDType;
 
-/// Temporal
-Property TypeStr As %String(MAXLEN = "");
-
 /// Code of User
 Property Code As %String(MAXLEN = "");
 
@@ -19,14 +16,6 @@ ForeignKey FKSubscriber(Subscriber) References IBSP.Notice.DAT.Subscriber() [ Sq
 Index IXSubscriber On Subscriber;
 
 Index IXSubscriberType On (Subscriber, Type);
-
-/// Necessary for RESTForms2. This query is called when the "list" URL is invoked
-ClassMethod queryLIST() As %String
-{
-    quit "%id _id, " _
-         "Type, " _
-         "Code "
-}
 
 Storage Default
 {
@@ -38,13 +27,10 @@ Storage Default
 <Value>Subscriber</Value>
 </Value>
 <Value name="3">
-<Value>TypeStr</Value>
+<Value>Type</Value>
 </Value>
 <Value name="4">
 <Value>Code</Value>
-</Value>
-<Value name="5">
-<Value>Type</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.UserIDD</DataLocation>

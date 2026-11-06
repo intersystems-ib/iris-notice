@@ -17,9 +17,6 @@ Property BotName As %String(MAXLEN = "");
 /// Contact way for this topic
 Property ContactWay As IBSP.Notice.DAT.ContactWayType;
 
-/// Temporal
-Property ContactWayStr As %String(MAXLEN = "");
-
 /// Format of the Notification (HTML / TXT)
 Property Format As %String(MAXLEN = "");
 
@@ -98,7 +95,7 @@ Storage Default
 <Value>BotName</Value>
 </Value>
 <Value name="6">
-<Value>ContactWayStr</Value>
+<Value>ContactWay</Value>
 </Value>
 <Value name="7">
 <Value>Format</Value>
@@ -135,9 +132,6 @@ Storage Default
 </Value>
 <Value name="18">
 <Value>SendAlertFieldName</Value>
-</Value>
-<Value name="19">
-<Value>ContactWay</Value>
 </Value>
 </Data>
 <DataLocation>^IBSP.Notice.DAT.TopicD</DataLocation>
