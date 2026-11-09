@@ -16,7 +16,7 @@ ClassMethod GetByTypeAndAddress(type As %String, address As %String, Output cont
         &sql(
             SELECT ID INTO :id
               FROM IBSP_Notice_DAT.ContactWay
-             WHERE Type = :type
+             WHERE Type->Code = :type
                AND Address = :address
         )
 
@@ -32,9 +32,12 @@ ClassMethod Create(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, ad
 {
     return:(address = "") $$$OK
 
+    set typeObj = ""
+    set:(type '= "") typeObj = ##class(IBSP.Notice.DAT.ContactWayType).CodeUniqueOpen(type)
+
     set userID = ##class(IBSP.Notice.DAT.ContactWay).%New()
     set userID.Subscriber = subscriber
-    set userID.Type = type
+    set userID.Type = typeObj
     set userID.Address = address
 
     return userID.%Save(0)
@@ -50,7 +53,7 @@ ClassMethod Update(subscriber As IBSP.Notice.DAT.Subscriber, type As %String, ad
         UPDATE IBSP_Notice_DAT.ContactWay
             SET Address = :address
             WHERE Subscriber = :subscriberId
-            AND Type = :type
+            AND Type->Code = :type
     )
 
     return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.Update] SQLCODE error " _ SQLCODE _ " " _ %msg)
@@ -68,7 +71,7 @@ ClassMethod Delete(subscriber As IBSP.Notice.DAT.Subscriber, type As %String) As
         DELETE
             FROM IBSP_Notice_DAT.ContactWay
             WHERE Subscriber = :subscriberId
-            AND Type = :type
+            AND Type->Code = :type
     )
 
     return:(SQLCODE '= 0) $$$ERROR($$$GeneralError, "[IBSP.Notice.Service.ContactWayService.Delete] SQLCODE error " _ SQLCODE _ " " _ %msg)
@@ -85,7 +88,7 @@ ClassMethod GetAddressBySubscriberIdAndType(subscriberId As %BigInt, type As %St
             SELECT Address INTO :address
 			  FROM IBSP_Notice_DAT.ContactWay
 			 WHERE Subscriber = :subscriberId
-               AND Type = :type
+               AND Type->Code = :type
         )
     } catch ex {
         set sc = ex.AsStatus()
@@ -102,7 +105,7 @@ ClassMethod GetAddressesBySubscriberIdAndType(subscriberId As %BigInt, type As %
     try {
         set select = "SELECT Address "
         set from = "FROM IBSP_Notice_DAT.ContactWay "
-        set where = "WHERE Subscriber = ? AND Type = ? "
+        set where = "WHERE Subscriber = ? AND Type->Code = ? "
         set orderBy = "ORDER BY Address"
         set query = select _ from _ where _ orderBy
 
