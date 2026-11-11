@@ -3,10 +3,6 @@ Class IBSP.Notice.BO.RetrieveData.SQLBusinessOperation Extends Ens.BusinessOpera
 
 Parameter ADAPTER = "EnsLib.SQL.OutboundAdapter";
 
-Parameter TopicErrorNotAvailable = "Errors.NotAvailable";
-
-Parameter TopicErrorResponseTooLong = "Errors.ResponseTooLong";
-
 Property Adapter As EnsLib.SQL.OutboundAdapter;
 
 /// This query must return only one row (may have several columns)
@@ -23,163 +19,130 @@ Parameter INVOCATION = "Queue";
 
 Parameter RESPONSETEXTMAXLENGTH = 4000;
 
-/// This is the default message handler.  All request types not declared in the message map are delivered here
-Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.Persistent) As %Status
+Method GetData(request As Ens.Request, Output response As Ens.StringContainer) As %Status
 {
-	#dim tResult as %ResultSet
-	set tSC = $$$OK
+	set sc = $$$OK
+
 	try {
-		set pResponse = ##class(IBSP.Notice.Messages.DirectDeliverReq).%New()
-		set pResponse.Topic = pRequest.Topic.TopicKey
+
+        if (..Adapter.DSN = "") {
+            $$$ThrowOnError(..GetDataFromLocalDB(.params))
+        } else {
+            $$$ThrowOnError(..GetDataFromExternalDB(.params))
+        }
+
+        set response = ##class(Ens.StringContainer).%New(params.%ToJSON())
+	} catch ex {
+        set sc = ex.AsStatus()
+	}
+
+	quit sc
+}
+
+Method GetDataFromLocalDB(Output params As %DynamicObject) As %Status [ Internal, Private ]
+{
+    set sc = $$$OK
+
+	try {
 		
-		Set queryToExecute = ..Query
-		Set queryRowsToExecute = ..QueryROWS
-		Set receivedParams = pRequest.Parameters
-		if (receivedParams'="") {
-			FOR i=1:1:$length(receivedParams, " ") {				
-				Set queryToExecute = $replace(queryToExecute, "##PARAM"_i_"##", $piece(receivedParams, " ", i))	
-				Set queryRowsToExecute = $replace(queryRowsToExecute, "##PARAM"_i_"##", $piece(receivedParams, " ", i))	
-			}
+        set params = {}
+
+        // Execute query with single values
+		if (..Query '= "") { 
+
+            set result = ##class(%SQL.Statement).%ExecDirect(, ..Query)
+            if (result.%Next()) {
+                
+                set metadata = result.%GetMetadata()
+                for i = 1: 1: metadata.columnCount { // loop over columns
+
+                    set columnName = $zcvt(metadata.columns.GetAt(i).colName, "l")
+                    set params = params.%Set(columnName, result.%GetData(i))
+                }
+            }
+            
+            set result = ""
+        }
 		
-		}
+		// Execute query with multiple rows
+        if (..QueryROWS '= "") {
+
+            set result = ##class(%SQL.Statement).%ExecDirect(, ..QueryROWS)
+            set params.rows = []
+            while result.%Next() { // loop over records
+
+                set metadata = result.%GetMetadata()
+                set row = {}
+
+                for i = 1: 1:  metadata.columnCount { // loop over columns
+
+                    set columnName = $zcvt(metadata.columns.GetAt(i).colName, "l")
+                    set row = row.%Set(columnName, result.%GetData(i))
+                }
+
+                do params.rows.%Push(row)
+            }
+        }
+	} catch ex {
+		set sc = $$$OK
+	}
+
+	quit sc
+}
+
+Method GetDataFromExternalDB(Output params As %DynamicObject) As %Status [ Internal, Private ]
+{
+    set sc = $$$OK
+
+	try {
 
         set params = {}
 
 		// Execute query with single values
-		if ..Query '= "" { 
-			$$$ThrowOnError(..ExecuteQuery(.tResult, queryToExecute))
-			$$$ThrowOnError(tResult.%Next()) // just checks first record
-			for i=1:1:tResult.GetColumnCount() // loop over columns
-			{
-                set columnName = $zcvt(tResult.GetColumnName(i), "l")
-                set params = params.%Set(columnName, tResult.GetData(i))
-			}
-			set tResult = ""
+		if (..Query '= "") { 
+
+			$$$ThrowOnError(..Adapter.ExecuteQuery(.result, ..Query))
+			if (result.%Next()) { // just checks first record
+
+                for i = 1: 1: result.GetColumnCount() {// loop over columns
+
+                    set columnName = $zcvt(result.GetColumnName(i), "l")
+                    set params = params.%Set(columnName, result.GetData(i))
+                }
+            }
+			set result = ""
 		}
 		
 		// Execute query with multiple rows
-		if ..QueryROWS '= "" { 
-			$$$ThrowOnError(..ExecuteQuery(.tResult, queryRowsToExecute))
+		if (..QueryROWS '= "") { 
+
+			$$$ThrowOnError(..Adapter.ExecuteQuery(.result, ..QueryROWS))
             set params.rows = []
-			while tResult.%Next() // loop over records
-			{
+			while result.%Next() {// loop over records
+
                 set row = {}
-				for i=1:1:tResult.GetColumnCount() // loop over columns
-				{
-                    set columnName = $zcvt(tResult.GetColumnName(i), "l")
-                    set row = row.%Set(columnName, tResult.GetData(i))
+				for i = 1: 1: result.GetColumnCount() { // loop over columns
+
+                    set columnName = $zcvt(result.GetColumnName(i), "l")
+                    set row = row.%Set(columnName, result.GetData(i))
 				}
                 do params.rows.%Push(row)
 			}
 		}
-
-		set language = pRequest.Subscriber.Lang
-		
-        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(pRequest.Topic, language, params, .text))
-
-		if ($length(text) > ..#RESPONSETEXTMAXLENGTH) {
-
-			set topicKey = ..#TopicErrorResponseTooLong
-			set pResponse.Topic = topicKey
-			set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-            $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
-		}
-		
-		set pResponse.Text = text
 	} catch ex {
-		#dim ex as %Exception.AbstractException
-		// ERROR #5821: Cannot instantiate query: 'SQLCODE = -461, %msg = Connection error'
-		$$$LOGERROR(ex.DisplayString())
-		set tSC = $$$OK // $$$LOGERROR, but return message by setting BO Status as OK
-		set pResponse.Error = ex.DisplayString()
-		set topicKey = ..#TopicErrorNotAvailable
-		set pResponse.Topic = topicKey
-		set language = pRequest.Subscriber.Lang
-		set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
-		set pResponse.Text = text
+        set sc = ex.AsStatus()
 	}
-	Quit tSC
+
+	quit sc
 }
 
-Method ExecuteQuery(ByRef RS As %ResultSet, queryStr As %String) As %Status
+XData MessageMap
 {
-	set tSC = $$$OK
-	try {
-		if ..Adapter.DSN="" // Query to tables with access within the namespace
-		{
-			Set tResult=##class(%ResultSet).%New("%DynamicQuery:SQL")
-			$$$ThrowOnError(tResult.Prepare(queryStr))
-			$$$ThrowOnError(tResult.Execute())
-		}
-		else // Do the query using the Adapter
-		{
-			$$$ThrowOnError(..Adapter.ExecuteQuery(.tResult,queryStr))
-		}
-		set RS = tResult
-	}catch ex {
-		set tSC = ex.AsStatus()
-	}
-	quit tSC
-}
-
-ClassMethod AddROWS(ByRef values) As %Status
-{
-	set key = ""
-	set header = ""
-	set row = ""
-	set colsep = " • " // column separator
-	set eol = $c(10)
-	do {
-		set key = $order(values(key))
-		quit:key=""
-
-		// continue to next value if it is not value form queryROWS
-		continue:'$find(key,":")
-		// set header
-		set header = header _ $case(header="",1:"",:colsep) _ $tr($p(key,":",2),"_"," ")
-		// set each row
-		for r = 1:1:$l(values(key),"|") {
-			set row(r) = $g(row(r)) _ $case($g(row(r))="",1:"",:colsep) _ $p(values(key),"|",r)
-		}
-	}while key '= ""
-	
-	if $order(row("")) '= "" // set "ROWS" if exists rows
-	{
-		//Format header (underline & bold): __\* + header + \*__ + \n
-		set header = "__*" _ header _ "*__" _ eol
-		
-		set values("ROWS") = header
-		set key = ""
-		do {
-			set key = $order(row(key))
-			quit:key=""
-			
-			set row(key) = ..BoldSubstr(row(key), colsep)
-			set values("ROWS") = values("ROWS") _ row(key) _ eol
-		}while key '= ""
-	}
-}
-
-/// Emphasize (MarkdownV2) every substrtobold found in str
-/// Example: ..BoldSubstr("how:are:you?", ":") -> "how*:*are*:*you?"
-ClassMethod BoldSubstr(str As %String, substrtobold As %String) As %String
-{
-	set substrBolded = "*" _ substrtobold _ "*"
-	set start = 1
-	set strout = ""
-	do {
-		set end = $find(str,substrtobold,start)
-		if end '= 0 {
-			set chunk = $extract(str,start,end-$l(substrtobold)-1) _ substrBolded
-		}else{
-			set chunk = $extract(str,start,*)
-		}
-		set strout = strout _ chunk
-		set start = end
-	}while end > 0
-	
-	quit strout
+<MapItems>
+	<MapItem MessageType="Ens.Request"> 
+		<Method>GetData</Method>
+	</MapItem>
+</MapItems>
 }
 
 }
