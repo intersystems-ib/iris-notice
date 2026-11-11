@@ -107,11 +107,11 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 
 
          if topic.TemplateMsg '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, subscriber.Lang, paramsJson, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, subscriber.Lang, paramsJson, .text))
              set paramsJson.msg = text
          }
          if topic.BodyTemplate '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBodyNew(topic, paramsJson, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(topic, paramsJson, .text))
          }
 
          set pushRequest = request.%ConstructClone()

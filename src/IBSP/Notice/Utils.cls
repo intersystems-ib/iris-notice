@@ -185,7 +185,7 @@ ClassMethod GetTextParamsAsArray(params As %String, ByRef paramsArray As %String
 }
 
 /// Gets the final text for a topic in the corresponding language and replaces the tags with the input parameters ARRAY
-ClassMethod GetTopicText(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, ByRef params, Output text As %String) As %Status
+ClassMethod GetTopicTextOld(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, ByRef params, Output text As %String) As %Status
 {
 	#define DefaultLang ##class(IBSP.Notice.DAT.Lang).GetDefault()
 
@@ -235,7 +235,7 @@ ClassMethod GetTranslatedMessage(messageID As %String, lang As IBSP.Notice.DAT.L
 	quit defaultMessage
 }
 
-ClassMethod GetTopicBody(topic As IBSP.Notice.DAT.Topic, ByRef params, Output text As %String) As %Status
+ClassMethod GetTopicBodyOld(topic As IBSP.Notice.DAT.Topic, ByRef params, Output text As %String) As %Status
 {
 	set tSC = $$$OK
 
@@ -403,7 +403,7 @@ ClassMethod IsUserApproved(userId As %String, commandName As %String) As %Boolea
 	quit $$$YES
 }
 
-ClassMethod GetTopicTextNew(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, params As %DynamicObject = {{}}, Output text As %String) As %Status
+ClassMethod GetTopicText(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.DAT.Lang, params As %DynamicObject = {{}}, Output text As %String) As %Status
 {
 	set tSC = $$$OK
 
@@ -421,7 +421,7 @@ ClassMethod GetTopicTextNew(topic As IBSP.Notice.DAT.Topic, lang As IBSP.Notice.
 	quit tSC
 }
 
-ClassMethod GetTopicBodyNew(topic As IBSP.Notice.DAT.Topic, params As %DynamicObject = {{}}, Output text As %String) As %Status
+ClassMethod GetTopicBody(topic As IBSP.Notice.DAT.Topic, params As %DynamicObject = {{}}, Output text As %String) As %Status
 {
 	set tSC = $$$OK
 

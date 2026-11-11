@@ -75,14 +75,14 @@ Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.P
 
 		set language = pRequest.Subscriber.Lang
 		
-        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(pRequest.Topic, language, params, .text))
+        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(pRequest.Topic, language, params, .text))
 
 		if ($length(text) > ..#RESPONSETEXTMAXLENGTH) {
 
 			set topicKey = ..#TopicErrorResponseTooLong
 			set pResponse.Topic = topicKey
 			set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-            $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, language, , .text))
+            $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
 		}
 		
 		set pResponse.Text = text
@@ -96,7 +96,7 @@ Method OnMessage(pRequest As %Library.Persistent, Output pResponse As %Library.P
 		set pResponse.Topic = topicKey
 		set language = pRequest.Subscriber.Lang
 		set topic = ##class(IBSP.Notice.DAT.Topic).UITopicKeyOpen(topicKey)
-        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(topic, language, , .text))
+        $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(topic, language, , .text))
 		set pResponse.Text = text
 	}
 	Quit tSC

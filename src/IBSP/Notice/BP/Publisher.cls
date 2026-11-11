@@ -189,15 +189,15 @@ Pull notifications must always be sent.]]></annotation>
          set paramsJson = paramsJson.%Set(contactWayType, contactWayAddress)
 
          if request.Topic.TemplateMsg '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(request.Topic, request.Subscriber.Lang, paramsJson, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, paramsJson, .text))
              set paramsJson.msg = text
          }
          if request.Topic.BodyTemplate '= "" {
-             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBodyNew(request.Topic, paramsJson, .text))
+             $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicBody(request.Topic, paramsJson, .text))
          }
             
      } else {
-         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicTextNew(request.Topic, request.Subscriber.Lang, paramsJson, .text))
+         $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, paramsJson, .text))
      }
      set request.Text = text
  }]]>
