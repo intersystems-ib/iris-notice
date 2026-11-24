@@ -10,7 +10,7 @@ Storage Default
 /// BPL Definition
 XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 {
-<process language='objectscript' request='IBSP.Notice.Request.NoticeRequest' response='IBSP.Notice.Messages.NoticeRes' height='2500' width='2150' >
+<process language='objectscript' request='IBSP.Notice.Request.NoticeRequest' response='IBSP.Notice.Messages.NoticeRes' height='2850' width='2150' >
 <context>
 <property name='outboundAdapter' type='%String' instantiate='0' >
 <parameters>
@@ -30,6 +30,7 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
 <parameter name='MAXLEN'  value='' />
 </parameters>
 </property>
+<property name='hasRequestText' type='%Boolean' instantiate='0' />
 </context>
 <sequence xend='200' yend='700' >
 <switch name='Notification Type' xpos='200' ypos='250' xend='200' yend='500' >
@@ -72,13 +73,15 @@ XData BPL [ XMLNamespace = "http://www.intersystems.com/bpl" ]
          $$$ThrowOnError(##class(IBSP.Notice.Service.SubscriberService).GetByTopic(topic.TopicKey, .subscribers))
          set context.subscribers = subscribers
      }
+     
+     set context.hasRequestText = (request.Text '= "")
  } catch ex {
      $$$LOGERROR("Error: " _ ex.DisplayString())
  }]]>
 </code>
 </default>
 </switch>
-<foreach name='Loop over all subscribers' property='context.subscribers' key='context.k1' xpos='200' ypos='600' xend='200' yend='2250' >
+<foreach name='Loop over all subscribers' property='context.subscribers' key='context.k1' xpos='200' ypos='600' xend='200' yend='2600' >
 <switch name='NotificationType' xpos='200' ypos='250' xend='200' yend='500' >
 <case condition='request.isPushNotification()' name='Push' >
 <code name='Calculate has to send' xpos='200' ypos='400' >
@@ -109,12 +112,20 @@ Pull notifications must always be sent.]]></annotation>
 </code>
 </default>
 </switch>
-<if name='Send notification' condition='context.hasToSendNotification' xpos='200' ypos='600' xend='200' yend='2150' >
+<if name='Send notification' condition='context.hasToSendNotification' xpos='200' ypos='600' xend='200' yend='2500' >
 <true>
 <code name='Set subscriber' xpos='335' ypos='750' >
 <![CDATA[ set request.Subscriber = context.subscribers.GetAt(context.k1)]]>
 </code>
-<code name='Validate content' xpos='335' ypos='850' >
+<if name='Has request text?' condition='context.hasRequestText' xpos='335' ypos='850' xend='335' yend='1100' >
+<annotation><![CDATA[If the original request has text, it doesn't have to be reseted]]></annotation>
+<false>
+<code name='Clear text' xpos='470' ypos='1000' >
+<![CDATA[ set request.Text = ""]]>
+</code>
+</false>
+</if>
+<code name='Validate content' xpos='335' ypos='1200' >
 <![CDATA[ set validationCommand = request.Topic.ValidationCommand
  
  if validationCommand '= "" {
@@ -141,10 +152,10 @@ Pull notifications must always be sent.]]></annotation>
      set context.sc = 1
  }]]>
 </code>
-<if name='Is Error' condition='$$$ISERR(context.sc)' xpos='335' ypos='950' xend='335' yend='2050' >
+<if name='Is Error' condition='$$$ISERR(context.sc)' xpos='335' ypos='1300' xend='335' yend='2400' >
 <true>
-<assign name="Validation error" property="response.result" value="&quot;Topic validation error&quot;" action="set" xpos='335' ypos='1100' />
-<code name='Create Notification' xpos='335' ypos='1200' >
+<assign name="Validation error" property="response.result" value="&quot;Topic validation error&quot;" action="set" xpos='335' ypos='1450' />
+<code name='Create Notification' xpos='335' ypos='1550' >
 <![CDATA[ set notification = ##class(IBSP.Notice.DAT.Notification).%New()
  set notification.Topic = request.Topic
  set notification.Element = request.Element
@@ -162,15 +173,15 @@ Pull notifications must always be sent.]]></annotation>
 </code>
 </true>
 <false>
-<if name='Send notification' condition='context.hasToSendNotification' xpos='605' ypos='1100' xend='605' yend='1950' >
+<if name='Send notification' condition='context.hasToSendNotification' xpos='605' ypos='1450' xend='605' yend='2300' >
 <true>
-<switch name='NotificationType' xpos='875' ypos='1250' xend='875' yend='1500' >
+<switch name='NotificationType' xpos='875' ypos='1600' xend='875' yend='1850' >
 <case condition='request.isPushNotification()' name='Push' >
-<code name='Calculate text' xpos='1010' ypos='1400' >
+<code name='Calculate text' xpos='1010' ypos='1750' >
 <annotation><![CDATA[Decide whether push notification has to be sent or not.
 Pull notifications must always be sent.]]></annotation>
 <![CDATA[ if request.Text = "" {
- 
+
      set paramsJson = {}.%FromJSON(request.TextParams)
  
      if $zconvert(context.outboundAdapter, "L") = "http" {
@@ -199,15 +210,16 @@ Pull notifications must always be sent.]]></annotation>
      } else {
          $$$ThrowOnError(##class(IBSP.Notice.Utils).GetTopicText(request.Topic, request.Subscriber.Lang, paramsJson, .text))
      }
+
      set request.Text = text
  }]]>
 </code>
 </case>
 <default name='default' />
 </switch>
-<switch name='Outbound Adapter' xpos='875' ypos='1600' xend='875' yend='1850' >
+<switch name='Outbound Adapter' xpos='875' ypos='1950' xend='875' yend='2200' >
 <case condition='$zconvert(context.outboundAdapter, "L") = "telegram"' name='Telegram' >
-<code name='Send Telegram Notification' xpos='1010' ypos='1750' >
+<code name='Send Telegram Notification' xpos='1010' ypos='2100' >
 <![CDATA[ try {
  
      set telegramAddresses = ##class(%ListOfDataTypes).%New()
@@ -251,7 +263,7 @@ Pull notifications must always be sent.]]></annotation>
 </code>
 </case>
 <case condition='$zconvert(context.outboundAdapter, "L") = "email"' name='Email' >
-<code name='Send Email Notification' xpos='1280' ypos='1750' >
+<code name='Send Email Notification' xpos='1280' ypos='2100' >
 <![CDATA[ try {
  
      set topic = request.Topic
@@ -283,7 +295,7 @@ Pull notifications must always be sent.]]></annotation>
 </code>
 </case>
 <case condition='($zconvert(context.outboundAdapter, "L") = "http") || ($zconvert(context.outboundAdapter, "L") = "sms")' name='HTTP / SMS' >
-<code name='Send HTTP/SMS Notification' xpos='1550' ypos='1750' >
+<code name='Send HTTP/SMS Notification' xpos='1550' ypos='2100' >
 <![CDATA[ try {
  
      set restRequest = ##class(IBSP.Notice.Request.RESTNoticeRequest).%New(request)
@@ -306,8 +318,8 @@ Pull notifications must always be sent.]]></annotation>
 </switch>
 </true>
 <false>
-<assign name="Vallidation not passed" property="response.result" value="&quot;Topic validation not passed&quot;" action="set" xpos='605' ypos='1250' />
-<code name='Create Notification' xpos='605' ypos='1350' >
+<assign name="Vallidation not passed" property="response.result" value="&quot;Topic validation not passed&quot;" action="set" xpos='605' ypos='1600' />
+<code name='Create Notification' xpos='605' ypos='1700' >
 <![CDATA[ set notification = ##class(IBSP.Notice.DAT.Notification).%New()
  set notification.Topic = request.Topic
  set notification.Element = request.Element
